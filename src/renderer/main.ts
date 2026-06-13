@@ -1,6 +1,10 @@
-import { createEditor, getMarkdown, getHTML, setMarkdown } from './editor/editor'
+import { createEditor, getMarkdown, getHTML, setMarkdown, showMathModal } from './editor/editor'
+import { SearchPanel } from './editor/search-panel'
 import { applyTheme, loadSavedTheme } from './themes/theme-manager'
+import katexCSS from 'katex/dist/katex.min.css?inline'
 import './themes/base.css'
+
+const katexExportCSS = katexCSS.replace(/@font-face\{[^}]+\}/g, '')
 
 function isSlidesContent(content: string): boolean {
   return /^---\s*\n[\s\S]*?(kicker|chip):/m.test(content)
@@ -51,6 +55,10 @@ async function init(): Promise<void> {
     const css = await api.loadThemeCSS(fileName)
     if (css) applyTheme(savedTheme, css)
   }
+
+  const searchPanel = new SearchPanel()
+  api.onSearch(() => searchPanel.show())
+  api.onMathModal(() => showMathModal())
 
   await createEditor('editor')
 
@@ -110,6 +118,7 @@ th{background:${tableHeaderBg};font-weight:600}
 hr{border:none;border-top:2px solid ${borderColor};margin:2em 0}
 img{max-width:100%}
 ::selection{background:${selectionBg}}
+${katexExportCSS}
 </style>
 </head><body>${getHTML()}</body></html>`
     api.exportHTML(html)

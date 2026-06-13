@@ -1,7 +1,8 @@
-import type { ElectronAPI } from '../preload/index'
+declare module 'katex/dist/katex.min.css?inline' {
+  const css: string
+  export default css
+}
 
-declare global {
-  interface Window {
-    electronAPI: ElectronAPI
-  }
+interface Window {
+  electronAPI: import('../preload/index').ElectronAPI
 }

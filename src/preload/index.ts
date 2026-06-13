@@ -28,7 +28,10 @@ export interface ElectronAPI {
   onSetCustomCSS: (callback: (css: string) => void) => void
   exportSlides: (content: string) => Promise<boolean>
   onMenuExportSlides: (callback: () => void) => void
+  onMenuImportTheme: (callback: () => void) => void
   onAgentActivity: (callback: (state: string) => void) => void
+  onSearch: (callback: () => void) => void
+  onMathModal: (callback: () => void) => void
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -92,5 +95,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onAgentActivity: (callback: (state: string) => void) => {
     ipcRenderer.on('agent-activity', (_event, state) => callback(state))
+  },
+  onSearch: (callback: () => void) => {
+    ipcRenderer.on('editor:search', () => callback())
+  },
+  onMathModal: (callback: () => void) => {
+    ipcRenderer.on('editor:math', () => callback())
   }
 } satisfies ElectronAPI)
