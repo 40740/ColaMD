@@ -1,9 +1,10 @@
 name: Release
 
+# Fork note: tag-based releases are handled by build-mac-arm64.yml (which
+# builds an unsigned arm64 installer and creates the Release). This upstream
+# workflow stays available for manual dispatch only, since its macOS job needs
+# Apple signing/notarization secrets that forks don't have.
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
 
 jobs:
