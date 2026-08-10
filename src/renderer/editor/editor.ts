@@ -485,18 +485,32 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     if (editing) return
     const view = getEditorView()
     if (!view) return
+    // posAtDOM(el, 0) returns the position at the START OF THE CONTENT of the
+    // element (blockStart + 1), not the block node position — so resolve it and
+    // walk up the ancestor chain to find the enclosing block node.
     const pos = view.posAtDOM(blockEl, 0)
     if (pos == null) return
-    const node = view.state.doc.nodeAt(pos)
-    if (!node || !node.isBlock || node.type.name === 'doc') return
+    const $pos = view.state.doc.resolve(pos)
+    let node: PMNode | null = null
+    let nodePos = -1
+    for (let d = $pos.depth; d >= 0; d--) {
+      const n = $pos.node(d)
+      if (n.isBlock && n.type.name !== 'doc') {
+        node = n
+        nodePos = $pos.before(d)
+        break
+      }
+    }
+    if (!node || nodePos < 0) return
+    const block = node
 
     let raw = ''
     editorInstance?.action((ctx) => {
       const serializer = ctx.get(serializerCtx)
-      let top: PMNode = node
+      let top: PMNode = block
       // list items aren't valid top-level blocks — wrap in a list to serialize
-      if (node.type.name === 'list_item') {
-        top = view.state.schema.nodes.bullet_list.create(null, [node])
+      if (block.type.name === 'list_item') {
+        top = view.state.schema.nodes.bullet_list.create(null, [block])
       }
       const tempDoc = view.state.schema.nodes.doc.create(null, [top])
       raw = serializer(tempDoc)
@@ -511,8 +525,8 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     ta.style.left = `${rect.left}px`
     ta.style.width = `${Math.max(rect.width, 220)}px`
     ta.style.minHeight = `${Math.max(rect.height, 60)}px`
-    ta.dataset.pos = String(pos)
-    ta.dataset.size = String(node.nodeSize)
+    ta.dataset.pos = String(nodePos)
+    ta.dataset.size = String(block.nodeSize)
     ta.focus()
     ta.setSelectionRange(0, 0)
   }
