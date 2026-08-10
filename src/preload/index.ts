@@ -1,8 +1,15 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
+export interface SiblingFile {
+  name: string
+  path: string
+}
+
 export interface ElectronAPI {
   openFile: () => Promise<{ path: string; content: string } | null>
   openFilePath: (path: string) => Promise<{ path: string; content: string } | null>
+  listSiblings: () => Promise<SiblingFile[] | null>
+  openSibling: (path: string) => Promise<boolean>
   saveFile: (content: string) => Promise<boolean>
   saveFileAs: (content: string) => Promise<boolean>
   exportPDF: () => Promise<boolean>
@@ -30,11 +37,15 @@ export interface ElectronAPI {
   onAgentActivity: (callback: (state: string) => void) => void
   onSearch: (callback: () => void) => void
   onMathModal: (callback: () => void) => void
+  onSiblingsChanged: (callback: (files: SiblingFile[]) => void) => void
+  onToggleFilePanel: (callback: () => void) => void
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openFile: () => ipcRenderer.invoke('open-file'),
   openFilePath: (path: string) => ipcRenderer.invoke('open-file-path', path),
+  listSiblings: () => ipcRenderer.invoke('list-siblings'),
+  openSibling: (path: string) => ipcRenderer.invoke('open-sibling', path),
   saveFile: (content: string) => ipcRenderer.invoke('save-file', content),
   saveFileAs: (content: string) => ipcRenderer.invoke('save-file-as', content),
   exportPDF: () => ipcRenderer.invoke('export-pdf'),
@@ -95,5 +106,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onMathModal: (callback: () => void) => {
     ipcRenderer.on('editor:math', () => callback())
+  },
+  onSiblingsChanged: (callback: (files: SiblingFile[]) => void) => {
+    ipcRenderer.on('siblings-changed', (_event, files) => callback(files))
+  },
+  onToggleFilePanel: (callback: () => void) => {
+    ipcRenderer.on('toggle-file-panel', () => callback())
   }
 } satisfies ElectronAPI)

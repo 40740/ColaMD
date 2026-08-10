@@ -11,6 +11,52 @@ let sourceModeActive = false
 const editorEl = () => document.getElementById('editor') as HTMLElement
 const sourceEl = () => document.getElementById('source-editor') as HTMLTextAreaElement
 const slidesBtnEl = () => document.getElementById('slides-btn') as HTMLButtonElement
+const filePanelEl = () => document.getElementById('file-panel') as HTMLElement
+const fileListEl = () => document.getElementById('file-list') as HTMLElement
+
+// --- Same-directory file panel ---
+let currentFilePath: string | null = null
+let dirty = false
+// Milkdown's markdownUpdated listener fires 200ms-debounced AFTER a doc change,
+// so a programmatic load would spuriously mark the doc dirty unless we keep a
+// suppression window long enough to cover that debounce.
+let applyingUntil = 0
+let manualHidden = localStorage.getItem('file-panel-hidden') === '1'
+
+function markApplying(): void {
+  applyingUntil = Date.now() + 350
+}
+
+function applyContent(content: string): void {
+  markApplying()
+  setContent(content)
+}
+
+function updatePanelVisibility(): void {
+  const show = currentFilePath !== null && !manualHidden
+  filePanelEl().hidden = !show
+  document.body.classList.toggle('show-file-panel', show)
+}
+
+function renderFileList(files: import('../preload/index').SiblingFile[]): void {
+  const list = fileListEl()
+  list.innerHTML = ''
+  for (const f of files) {
+    const li = document.createElement('li')
+    const btn = document.createElement('button')
+    btn.textContent = f.name
+    btn.title = f.name
+    btn.dataset.path = f.path
+    if (f.path === currentFilePath) btn.classList.add('active')
+    li.appendChild(btn)
+    list.appendChild(li)
+  }
+}
+
+async function refreshSiblings(): Promise<void> {
+  const files = await window.electronAPI.listSiblings()
+  if (files) renderFileList(files)
+}
 
 function enterSourceMode(content: string): void {
   sourceModeActive = true
@@ -57,28 +103,63 @@ async function init(): Promise<void> {
   api.onSearch(() => searchPanel.show())
   api.onMathModal(() => showMathModal())
 
-  await createEditor('editor')
+  await createEditor('editor', () => {
+    if (Date.now() >= applyingUntil) dirty = true
+  })
+
+  // File panel: switch to a sibling file (confirm if there are unsaved edits)
+  fileListEl().addEventListener('click', async (e) => {
+    const btn = (e.target as HTMLElement).closest('button[data-path]') as HTMLButtonElement | null
+    if (!btn || !btn.dataset.path) return
+    if (btn.dataset.path === currentFilePath) return
+    if (dirty && !window.confirm('当前文件有未保存的修改，切换文件会丢失这些修改。是否继续？')) return
+    await api.openSibling(btn.dataset.path)
+  })
+
+  api.onToggleFilePanel(() => {
+    manualHidden = !manualHidden
+    localStorage.setItem('file-panel-hidden', manualHidden ? '1' : '0')
+    updatePanelVisibility()
+  })
+
+  api.onSiblingsChanged((files) => renderFileList(files))
+  updatePanelVisibility()
 
   // Slides button — open as slides
   slidesBtnEl().addEventListener('click', () => api.openAsSlides(getContent()))
 
   api.onMenuOpen(async () => {
-    const result = await api.openFile()
-    if (result) setContent(result.content)
+    // 'file-opened' event drives the content load (and file-panel refresh)
+    await api.openFile()
   })
 
-  api.onMenuSave(() => api.saveFile(getContent()))
-  api.onMenuSaveAs(() => api.saveFileAs(getContent()))
+  api.onMenuSave(async () => {
+    const ok = await api.saveFile(getContent())
+    if (ok) dirty = false
+  })
+  api.onMenuSaveAs(async () => {
+    const ok = await api.saveFileAs(getContent())
+    if (ok) dirty = false
+  })
   api.onMenuExportPDF(() => api.exportPDF())
 
-  api.onNewFile(() => { exitSourceMode(); setMarkdown('') })
-  api.onFileOpened((data) => setContent(data.content))
+  api.onNewFile(() => { exitSourceMode(); applyContent('') })
+  api.onFileOpened((data) => {
+    currentFilePath = data.path
+    dirty = false
+    markApplying()
+    setContent(data.content)
+    updatePanelVisibility()
+    refreshSiblings()
+  })
   api.onFileChanged((content) => {
+    markApplying()
     if (sourceModeActive) {
       sourceEl().value = content
     } else {
       setMarkdown(content)
     }
+    dirty = false
   })
   api.onSetTheme((theme) => applyTheme(theme))
   api.onSetCustomCSS((css) => {
@@ -120,7 +201,8 @@ async function init(): Promise<void> {
     const filePath = api.getPathForFile(file)
     if (!filePath) return
     const result = await api.openFilePath(filePath)
-    if (result) setContent(result.content)
+    // 'file-opened' event drives the content load when opened into this window
+    void result
   })
 }
 

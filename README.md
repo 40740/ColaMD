@@ -34,7 +34,9 @@ This is what **Agent Native** means: built from the ground up for a world where 
 - **True WYSIWYG** — Type Markdown, see rich text. No split-pane preview.
 - **Smart Line Breaks** — Single newlines render as line breaks, matching how AI agents write Markdown.
 - **Rich Text Copy** — Copy content and paste into WeChat, email, or any rich text editor with formatting preserved.
-- **Minimal by Design** — No toolbar, no sidebar, no distractions. Just your content.
+- **Search & LaTeX** — ⌘/Ctrl+F to search; ⌘/Ctrl+Shift+E to insert formulas (KaTeX rendering).
+- **Same-Directory File List** — When a file is open, a slim left panel lists the Markdown files in the same directory. Click to switch; files created or removed by your agent appear instantly. Hide with ⌘/Ctrl+Shift+B.
+- **Minimal by Design** — No toolbar, no persistent sidebar, no distractions. Just your content.
 
 ### Themes & Export
 
@@ -136,7 +138,7 @@ No configuration needed. It just works.
 
 ColaMD is intentionally simple:
 
-- No file manager or workspace
+- No cross-directory file tree or workspace (same-directory Markdown file list only)
 - No cloud sync or collaboration
 - No AI features built in — it's a **viewer/editor** for AI-generated content
 - No plugin system
@@ -183,8 +185,10 @@ ColaMD will evolve alongside the agent ecosystem:
 - v1.4 — Slides: Markdown as Database, HTML template rendering
 - v1.5 — Export Slides: shareable single-file HTML with inlined images
 - v1.6 — Robust live sync: atomic-save (rename) detection, watcher self-recovery, spellcheck off
-- v1.6.1 — Editable task lists (click / ⌘+Enter), ==highlight== syntax, Markdown cheatsheet (current)
-- Future — More templates, bidirectional sync, multi-file watching
+- v1.6.1 — Editable task lists (click / ⌘+Enter), ==highlight== syntax, Markdown cheatsheet
+- v1.6.2 — Remove HTML export
+- v1.7 — Same-directory file list: switch files in place, live updates when agents create/remove files; search (⌘F) + LaTeX (⌘⇧E) from community PR #14 (current)
+- Future — More templates, bidirectional sync, cross-directory file browsing
 
 ## License
 

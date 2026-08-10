@@ -8,6 +8,27 @@ import { createServer as createHttpServer } from 'http'
 // Custom themes directory
 const themesDir = join(app.getPath('home'), '.colamd', 'themes')
 
+const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd']
+
+interface SiblingFile {
+  name: string
+  path: string
+}
+
+// List markdown files in the same directory as filePath, sorted by name
+async function listSiblingFiles(filePath: string): Promise<SiblingFile[]> {
+  const dir = dirname(filePath)
+  try {
+    const entries = await readdir(dir, { withFileTypes: true })
+    return entries
+      .filter((e) => e.isFile() && MARKDOWN_EXTENSIONS.includes(extname(e.name).toLowerCase()))
+      .map((e) => ({ name: e.name, path: join(dir, e.name) }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  } catch {
+    return []
+  }
+}
+
 function ensureThemesDir(): void {
   if (!existsSync(themesDir)) {
     mkdir(themesDir, { recursive: true }).catch(() => {})
@@ -29,6 +50,7 @@ interface WindowState {
   watcher: FSWatcher | null
   isInternalSave: boolean
   debounceTimer: ReturnType<typeof setTimeout> | null
+  siblingsTimer: ReturnType<typeof setTimeout> | null
   agentState: 'idle' | 'active' | 'cooldown'
   lastExternalChange: number
   agentCooldownTimer: ReturnType<typeof setTimeout> | null
@@ -40,7 +62,7 @@ let pendingFilePaths: string[] = []
 function getState(win: BrowserWindow): WindowState {
   let state = windowStates.get(win.id)
   if (!state) {
-    state = { filePath: null, watcher: null, isInternalSave: false, debounceTimer: null, agentState: 'idle', lastExternalChange: 0, agentCooldownTimer: null }
+    state = { filePath: null, watcher: null, isInternalSave: false, debounceTimer: null, siblingsTimer: null, agentState: 'idle', lastExternalChange: 0, agentCooldownTimer: null }
     windowStates.set(win.id, state)
   }
   return state
@@ -192,6 +214,18 @@ function watchFile(win: BrowserWindow, state: WindowState): void {
     scheduleReload()
   }
 
+  // Agent created/renamed/deleted a sibling file — refresh the file panel list
+  const scheduleSiblingsRefresh = (): void => {
+    if (state.siblingsTimer) clearTimeout(state.siblingsTimer)
+    state.siblingsTimer = setTimeout(() => {
+      state.siblingsTimer = null
+      if (state.filePath !== filePath) return // file switched meanwhile; new watcher handles it
+      listSiblingFiles(filePath).then((files) => {
+        if (!win.isDestroyed()) win.webContents.send('siblings-changed', files)
+      })
+    }, 300)
+  }
+
   const establish = (): void => {
     if (state.filePath !== filePath) return
     suppressUntil = Date.now() + 300
@@ -207,7 +241,13 @@ function watchFile(win: BrowserWindow, state: WindowState): void {
       const watcher = watch(dir, (eventType, filename) => {
         if (state.isInternalSave) return
         // filename may be null on some platforms — treat as our file
-        if (filename !== null && filename !== fileName) return
+        if (filename !== null && filename !== fileName) {
+          // A sibling file changed (agent created / renamed / deleted it)
+          if (MARKDOWN_EXTENSIONS.includes(extname(filename).toLowerCase())) {
+            scheduleSiblingsRefresh()
+          }
+          return
+        }
 
         if (eventType === 'rename') {
           // Atomic save / file replacement. The dir watcher itself stays
@@ -349,6 +389,7 @@ ipcMain.handle('open-file', async (event) => {
       state.filePath = filePath
       watchFile(win, state)
       updateTitle(win)
+      win.webContents.send('file-opened', { path: filePath, content: resolveImagePaths(content, filePath) })
       return { path: filePath, content }
     } catch {
       return null
@@ -371,6 +412,7 @@ ipcMain.handle('open-file-path', async (event, filePath: string) => {
       state.filePath = filePath
       watchFile(win, state)
       updateTitle(win)
+      win.webContents.send('file-opened', { path: filePath, content: resolveImagePaths(content, filePath) })
       return { path: filePath, content }
     } catch {
       return null
@@ -379,6 +421,23 @@ ipcMain.handle('open-file-path', async (event, filePath: string) => {
     openFile(filePath)
     return null
   }
+})
+
+// Same-directory file panel: list markdown files next to the open file
+ipcMain.handle('list-siblings', async (event) => {
+  const win = getWinFromEvent(event)
+  if (!win) return null
+  const state = getState(win)
+  if (!state.filePath) return null
+  return listSiblingFiles(state.filePath)
+})
+
+// Switch the current window to a sibling file (replaces content, re-watches)
+ipcMain.handle('open-sibling', async (event, filePath: string) => {
+  const win = getWinFromEvent(event)
+  if (!win || typeof filePath !== 'string') return false
+  loadFileInWindow(win, filePath)
+  return true
 })
 
 ipcMain.handle('save-file', async (event, content: string) => {
@@ -845,6 +904,12 @@ function buildMenu(): void {
         { role: 'resetZoom' },
         { role: 'zoomIn' },
         { role: 'zoomOut' },
+        { type: 'separator' },
+        {
+          label: '显示 / 隐藏文件列表',
+          accelerator: 'CmdOrCtrl+Shift+B',
+          click: () => sendToFocused('toggle-file-panel')
+        },
         { type: 'separator' },
         { role: 'togglefullscreen' }
       ]
