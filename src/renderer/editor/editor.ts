@@ -151,6 +151,8 @@ export async function createEditor(
   root.addEventListener('copy', enhanceClipboard)
   root.addEventListener('cut', enhanceClipboard)
 
+  setupCodeCopyButton(root)
+
   // Cmd+click (Mac) / Ctrl+click (Win/Linux) to open links in browser
   root.addEventListener('click', (e) => {
     if (!(e.metaKey || e.ctrlKey)) return
@@ -247,4 +249,82 @@ export function getEditorView(): EditorView | null {
     view = ctx.get(editorViewCtx)
   })
   return view
+}
+
+// ─── Code block copy button (issue #15) ────────────────────────────────────
+
+const COPY_RESET_MS = 1500
+
+function setupCodeCopyButton(root: HTMLElement): void {
+  const btn = document.createElement('button')
+  btn.type = 'button'
+  btn.className = 'code-copy-btn'
+  btn.textContent = '复制'
+  root.appendChild(btn)
+
+  let currentPre: HTMLElement | null = null
+  let resetTimer: ReturnType<typeof setTimeout> | undefined
+
+  const hide = (): void => {
+    btn.style.display = 'none'
+    currentPre = null
+  }
+
+  const show = (pre: HTMLElement): void => {
+    currentPre = pre
+    const preRect = pre.getBoundingClientRect()
+    btn.style.display = 'block'
+    // Top-right corner of the code block (fixed positioning, viewport coords)
+    btn.style.top = `${Math.max(preRect.top + 8, 8)}px`
+    btn.style.right = `${Math.max(window.innerWidth - preRect.right + 8, 8)}px`
+  }
+
+  // Hovering a code block reveals the copy button at its top-right corner
+  root.addEventListener('mouseover', (e) => {
+    const target = e.target as HTMLElement
+    const pre = target.closest('pre')
+    if (pre && root.contains(pre)) show(pre)
+  })
+
+  // Hide when the mouse leaves the code block (except when moving onto the button)
+  root.addEventListener('mouseout', (e) => {
+    if (!currentPre) return
+    const target = e.target as HTMLElement
+    if (!target.closest('pre')) return
+    const related = e.relatedTarget as HTMLElement | null
+    if (related && related.closest('.code-copy-btn')) return
+    hide()
+  })
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!currentPre) return
+    // Copy just the code — no line numbers or language marker
+    const code = currentPre.querySelector('code')?.textContent ?? currentPre.textContent ?? ''
+    if (await copyText(code)) {
+      btn.textContent = '已复制 ✓'
+      clearTimeout(resetTimer)
+      resetTimer = setTimeout(() => { btn.textContent = '复制' }, COPY_RESET_MS)
+    }
+  })
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    // Fallback for environments where the clipboard API is unavailable
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    let ok = false
+    try { ok = document.execCommand('copy') } catch { ok = false }
+    ta.remove()
+    return ok
+  }
 }

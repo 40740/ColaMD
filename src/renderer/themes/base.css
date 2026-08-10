@@ -300,6 +300,29 @@ body.show-file-panel #source-editor {
   line-height: 1.6;
 }
 
+/* Code block one-click copy button (hover top-right corner) */
+.code-copy-btn {
+  position: fixed;
+  z-index: 50;
+  display: none;
+  padding: 2px 12px;
+  font-size: 12px;
+  line-height: 22px;
+  color: var(--text-muted);
+  background: var(--code-block-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  user-select: none;
+}
+
+.code-copy-btn:hover {
+  color: var(--text-color);
+  border-color: var(--link-color);
+}
+
 /* Blockquote */
 #editor .ProseMirror blockquote {
   border-left: 4px solid var(--blockquote-border);
