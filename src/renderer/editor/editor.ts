@@ -102,12 +102,30 @@ const editingKeymap = $prose(() => {
           }
         }
 
-        // Exit a code block: ⌘/Ctrl+Enter, or Enter when the cursor sits on an
-        // empty line inside the block — so pressing Enter twice after the code
-        // gets out, just like headings drop back to a paragraph.
         if (event.key === 'Enter' && selection.empty) {
           const $from = selection.$from
           const parent = $from.parent
+
+          // Inside a table cell: plain Enter inserts a line break within the
+          // cell (Milkdown binds Enter to exit the table; ⌘/Ctrl+Enter still
+          // exits). Shift+Enter behaves the same.
+          if (!mod) {
+            let inTable = false
+            for (let d = $from.depth; d > 0; d--) {
+              if ($from.node(d).type.name === 'table') { inTable = true; break }
+            }
+            if (inTable) {
+              const hardBreak = state.schema.nodes.hard_break
+              if (hardBreak) {
+                view.dispatch(state.tr.replaceSelectionWith(hardBreak.create()))
+                return true
+              }
+            }
+          }
+
+          // Exit a code block: ⌘/Ctrl+Enter, or Enter when the cursor sits on an
+          // empty line inside the block — so pressing Enter twice after the code
+          // gets out, just like headings drop back to a paragraph.
           if (parent.type.name === 'code_block') {
             const text = parent.textContent
             const before = text.slice(0, $from.parentOffset)
@@ -502,15 +520,19 @@ function setupBlockSourceEditor(root: HTMLElement): void {
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    // Resolve the block fresh at click time — the element cached during hover
-    // can go stale (and posAtDOM returns null) if the doc re-rendered between
-    // hovering and clicking, which made the button appear dead.
-    const prevDisplay = btn.style.display
-    btn.style.display = 'none'
-    const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
-    btn.style.display = prevDisplay
-    const block = under?.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
-    if (block && root.contains(block)) openEditor(block)
+    try {
+      // Resolve the block fresh at click time — the element cached during hover
+      // can go stale (and posAtDOM returns null) if the doc re-rendered between
+      // hovering and clicking, which made the button appear dead.
+      const prevDisplay = btn.style.display
+      btn.style.display = 'none'
+      const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
+      btn.style.display = prevDisplay
+      const block = (under?.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null) || currentBlock
+      if (block && root.contains(block)) openEditor(block)
+    } catch (err) {
+      console.error('block source edit failed:', err)
+    }
   })
 
   // Single-click a line → open the source editor for that block only
