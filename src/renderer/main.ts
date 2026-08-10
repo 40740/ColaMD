@@ -1,4 +1,5 @@
-import { createEditor, getMarkdown, setMarkdown } from './editor/editor'
+import { createEditor, getMarkdown, setMarkdown, showMathModal } from './editor/editor'
+import { SearchPanel } from './editor/search-panel'
 import { applyTheme, loadSavedTheme } from './themes/theme-manager'
 import './themes/base.css'
 
@@ -51,6 +52,10 @@ async function init(): Promise<void> {
     const css = await api.loadThemeCSS(fileName)
     if (css) applyTheme(savedTheme, css)
   }
+
+  const searchPanel = new SearchPanel()
+  api.onSearch(() => searchPanel.show())
+  api.onMathModal(() => showMathModal())
 
   await createEditor('editor')
 

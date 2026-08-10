@@ -1,15 +1,63 @@
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
+import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
+import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
 import remarkBreaks from 'remark-breaks'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
 import { history } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { clipboard } from '@milkdown/kit/plugin/clipboard'
-import { replaceAll } from '@milkdown/kit/utils'
+import { replaceAll, $prose } from '@milkdown/kit/utils'
+import { remarkMathPlugin, katexOptionsCtx, mathInlineSchema, mathBlockSchema } from '@milkdown/plugin-math'
 import { htmlView } from './html-view'
+import { mathModal } from './math-modal'
 import { highlight, remarkHighlight, highlightStringifyHandler } from './highlight'
 
+import 'katex/dist/katex.min.css'
 import '@milkdown/kit/prose/view/style/prosemirror.css'
+
+export const searchPluginKey = new PluginKey('search-highlight')
+
+const searchHighlight = $prose(() => {
+  return new Plugin({
+    key: searchPluginKey,
+    state: {
+      init() {
+        return DecorationSet.empty
+      },
+      apply(tr, old) {
+        const meta = tr.getMeta(searchPluginKey)
+        if (meta !== undefined) return meta
+        return old.map(tr.mapping, tr.doc)
+      }
+    },
+    props: {
+      decorations(state) {
+        return searchPluginKey.getState(state)
+      }
+    }
+  })
+})
+
+const mathEditorPlugin = $prose(() => {
+  return new Plugin({
+    props: {
+      handleClickOn(_view, _pos, node, nodePos) {
+        if (node.type.name === 'math_inline' || node.type.name === 'math_block') {
+          const isBlock = node.type.name === 'math_block'
+          const currentValue = isBlock ? node.attrs.value : node.textContent
+          mathModal.show(currentValue, isBlock, nodePos)
+          return true
+        }
+        return false
+      }
+    }
+  })
+})
+
+export function showMathModal(): void {
+  mathModal.show()
+}
 
 let editorInstance: Editor | null = null
 
@@ -73,6 +121,7 @@ export async function createEditor(
         { plugin: remarkBreaks, options: {} },
         { plugin: remarkHighlight, options: {} },
       ])
+      ctx.set(katexOptionsCtx.key, { throwOnError: false })
       // Teach remark-stringify how to emit our custom ==highlight== node
       const stringifyOptions = ctx.get(remarkStringifyOptionsCtx)
       ctx.set(remarkStringifyOptionsCtx, {
@@ -93,6 +142,9 @@ export async function createEditor(
     .use(listener)
     .use(clipboard)
     .use(htmlView)
+    .use([remarkMathPlugin, katexOptionsCtx, mathInlineSchema, mathBlockSchema].flat())
+    .use(mathEditorPlugin)
+    .use(searchHighlight)
     .create()
 
   // Enhance clipboard with inline styles for rich text paste (e.g. WeChat)
@@ -178,4 +230,13 @@ export function getMarkdown(): string {
 export function setMarkdown(content: string): void {
   if (!editorInstance) return
   editorInstance.action(replaceAll(content))
+}
+
+export function getEditorView(): EditorView | null {
+  if (!editorInstance) return null
+  let view: EditorView | null = null
+  editorInstance.action((ctx) => {
+    view = ctx.get(editorViewCtx)
+  })
+  return view
 }

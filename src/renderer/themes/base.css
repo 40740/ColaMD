@@ -423,3 +423,191 @@ body.theme-newsprint #editor .ProseMirror {
   background: var(--border-color);
   border-radius: 3px;
 }
+
+/* ======= SEARCH PANEL ======= */
+
+.search-panel {
+  position: fixed;
+  top: 10px;
+  right: 56px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  -webkit-app-region: no-drag;
+}
+
+.search-input {
+  width: 180px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--link-color);
+}
+
+.search-count {
+  min-width: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.search-btn {
+  padding: 2px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: none;
+  color: var(--text-color);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.search-btn:hover {
+  background: var(--code-bg);
+}
+
+.search-close {
+  font-size: 18px;
+}
+
+.search-match {
+  background: rgba(255, 213, 79, 0.4);
+  border-radius: 2px;
+}
+
+.search-match-current {
+  background: rgba(255, 152, 0, 0.6);
+  border-radius: 2px;
+}
+
+/* ======= MATH ======= */
+
+#editor .ProseMirror .math-inline {
+  padding: 0 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#editor .ProseMirror .math-inline:hover {
+  background: var(--code-bg);
+}
+
+#editor .ProseMirror .math-block {
+  margin: 1em 0;
+  padding: 8px;
+  border-radius: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#editor .ProseMirror .math-block:hover {
+  background: var(--code-bg);
+}
+
+.math-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.math-modal {
+  display: flex;
+  width: 480px;
+  max-width: 90vw;
+  padding: 20px;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  -webkit-app-region: no-drag;
+}
+
+.math-modal h3 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.math-modal-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+}
+
+.math-modal-input:focus {
+  border-color: var(--link-color);
+}
+
+.math-modal-options {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.math-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.math-modal-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.math-modal-btn.cancel {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+}
+
+.math-modal-btn.cancel:hover {
+  background: var(--code-bg);
+}
+
+.math-modal-btn.save {
+  background: var(--link-color);
+  color: #fff;
+}
+
+.math-modal-btn.save:hover {
+  opacity: 0.9;
+}
