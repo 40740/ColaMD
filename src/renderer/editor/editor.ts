@@ -93,24 +93,6 @@ const editingKeymap = $prose(() => {
           }
         }
 
-        // Ctrl+~ (Ctrl+`) — toggle the current block between code block and paragraph
-        if (event.ctrlKey && event.code === 'Backquote') {
-          if (!selection.empty) return false
-          const $from = selection.$from
-          const parent = $from.parent
-          const codeBlock = state.schema.nodes.code_block
-          const paragraph = state.schema.nodes.paragraph
-          if (parent.type === codeBlock) {
-            view.dispatch(state.tr.setNodeMarkup($from.before(), paragraph, {}))
-            return true
-          }
-          if (parent.type === paragraph) {
-            view.dispatch(state.tr.setNodeMarkup($from.before(), codeBlock, { language: '' }))
-            return true
-          }
-          return false
-        }
-
         // Backspace / Delete at the very start of a heading — turn it back into a paragraph
         if ((event.key === 'Backspace' || event.key === 'Delete') && selection.empty) {
           const $from = selection.$from
@@ -120,13 +102,23 @@ const editingKeymap = $prose(() => {
           }
         }
 
-        // Exit a code block: ⌘/Ctrl+Enter, or plain Enter when the block is empty
+        // Exit a code block: ⌘/Ctrl+Enter, or Enter when the cursor sits on an
+        // empty line inside the block — so pressing Enter twice after the code
+        // gets out, just like headings drop back to a paragraph.
         if (event.key === 'Enter' && selection.empty) {
           const $from = selection.$from
           const parent = $from.parent
-          if (parent.type.name === 'code_block' && (mod || parent.textContent.length === 0)) {
-            exitCode(state, view.dispatch)
-            return true
+          if (parent.type.name === 'code_block') {
+            const text = parent.textContent
+            const before = text.slice(0, $from.parentOffset)
+            const after = text.slice($from.parentOffset)
+            const onEmptyLine =
+              (before.length === 0 || before.endsWith('\n')) &&
+              (after.length === 0 || after.startsWith('\n'))
+            if (mod || parent.textContent.length === 0 || onEmptyLine) {
+              exitCode(state, view.dispatch)
+              return true
+            }
           }
         }
 
@@ -510,7 +502,15 @@ function setupBlockSourceEditor(root: HTMLElement): void {
   btn.addEventListener('click', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (currentBlock) openEditor(currentBlock)
+    // Resolve the block fresh at click time — the element cached during hover
+    // can go stale (and posAtDOM returns null) if the doc re-rendered between
+    // hovering and clicking, which made the button appear dead.
+    const prevDisplay = btn.style.display
+    btn.style.display = 'none'
+    const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
+    btn.style.display = prevDisplay
+    const block = under?.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
+    if (block && root.contains(block)) openEditor(block)
   })
 
   // Single-click a line → open the source editor for that block only
