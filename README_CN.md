@@ -1,5 +1,7 @@
 # ColaMD
 
+> 一款免费、优雅的 Markdown 编辑器，支持 AI Agent 改动实时同步。
+
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
 Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准。但很多人的电脑上依然没有一个免费、好看、好用的 Markdown 阅读器/编辑器。
@@ -48,6 +50,10 @@ Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准�
 
 <p align="center"><em>内置语法速查、交互式待办列表、代码块、引用、表格与智能换行。</em></p>
 
+## 与现有 Markdown 工作流配合
+
+ColaMD 不要求你改变现有习惯，也适合与 Obsidian、Typora、VS Code 等 Markdown 软件配合使用。它们共享同一套 `.md` 文件，你可以用不同工具完成不同任务。
+
 ## 下载
 
 > 查看 [Releases](https://github.com/marswaveai/colamd/releases) 获取最新构建。
@@ -57,29 +63,6 @@ Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准�
 | macOS | `.dmg` |
 | Windows | `.exe` |
 | Linux | `.AppImage` / `.deb` |
-
-## 工作原理
-
-```
-┌─────────────┐     写入      ┌──────────────┐
-│  AI Agent   │ ──────────────▶│  .md 文件    │
-│ (Claude,    │                │              │
-│  Cursor...) │                └──────┬───────┘
-└─────────────┘                       │
-                              fs.watch 检测变化
-                                      │
-                              ┌───────▼───────┐
-                              │    ColaMD     │
-                              │   自动刷新    │
-                              │   ✨ 实时！   │
-                              └───────────────┘
-```
-
-1. 用 ColaMD 打开任意 `.md` 文件
-2. 让 AI Agent 编辑这个文件
-3. 看着内容实时更新 — 标题栏的指示器会在 Agent 写入时亮起橙色脉冲
-
-不需要任何配置，开箱即用。
 
 ## ColaMD 不做的事
 

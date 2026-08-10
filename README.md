@@ -1,5 +1,7 @@
 # ColaMD
 
+> A free, elegant Markdown editor for humans and AI agents — with real-time sync for AI-generated changes.
+
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
 Markdown has become the de facto standard for writing, note-taking, documentation, and collaboration in the age of AI. Yet many computers still don't have a free, beautiful, capable Markdown reader/editor.
@@ -48,6 +50,10 @@ If ColaMD is useful to you, please give the project a ⭐ Star.
 
 <p align="center"><em>Built-in syntax reference, interactive task lists, code blocks, quotes, tables, and smart line breaks.</em></p>
 
+## Works with your Markdown workflow
+
+ColaMD does not ask you to change your habits. It works well alongside Obsidian, Typora, VS Code, and other Markdown apps — all sharing the same `.md` files, with each tool doing what it does best.
+
 ## Download
 
 > Check [Releases](https://github.com/marswaveai/colamd/releases) for the latest builds.
@@ -57,29 +63,6 @@ If ColaMD is useful to you, please give the project a ⭐ Star.
 | macOS    | `.dmg` |
 | Windows  | `.exe` |
 | Linux    | `.AppImage` / `.deb` |
-
-## How It Works
-
-```
-┌─────────────┐     writes     ┌──────────────┐
-│  AI Agent   │ ──────────────▶│  .md file    │
-│ (Claude,    │                │              │
-│  Cursor...) │                └──────┬───────┘
-└─────────────┘                       │
-                              fs.watch detects
-                                      │
-                              ┌───────▼───────┐
-                              │    ColaMD     │
-                              │  auto-refresh │
-                              │   ✨ live!    │
-                              └───────────────┘
-```
-
-1. Open any `.md` file in ColaMD
-2. Let your AI agent edit that file
-3. Watch the content update in real-time — the indicator dot pulses orange while the agent writes
-
-No configuration needed. It just works.
 
 ## What ColaMD Does NOT Do
 
