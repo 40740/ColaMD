@@ -516,10 +516,10 @@ const slidesTemplateDir = app.isPackaged
   ? join(process.resourcesPath, 'templates', 'slides')
   : join(__dirname, '../../resources/templates/slides')
 
-// What's-new demo page: a playable changelog directory, one per major version
+// What's-new demo page: a playable changelog directory (changelog.md + demo files)
 const demoDir = app.isPackaged
-  ? join(process.resourcesPath, 'demo', 'v1.7')
-  : join(__dirname, '../../resources/demo/v1.7')
+  ? join(process.resourcesPath, 'demo')
+  : join(__dirname, '../../resources/demo')
 
 // Markdown cheatsheet shown via Help > Markdown 语法速查
 const cheatsheetPath = app.isPackaged
@@ -929,7 +929,7 @@ function buildMenu(): void {
         {
           label: '新功能演示',
           accelerator: 'CmdOrCtrl+Shift+D',
-          click: () => openFile(join(demoDir, 'index.md'))
+          click: () => openFile(join(demoDir, 'changelog.md'))
         },
         {
           label: 'Markdown 语法速查',

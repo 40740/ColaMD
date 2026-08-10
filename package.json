@@ -1,6 +1,6 @@
 {
   "name": "colamd",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "The Agent Native Markdown Editor",
   "main": "dist/main/index.js",
   "author": {
