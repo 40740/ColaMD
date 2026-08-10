@@ -39,6 +39,15 @@ Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准�
 - **极简设计** — 没有工具栏，没有永久侧边栏，专注于内容本身。
 - **跨平台** — 支持 macOS、Windows 和 Linux。
 
+## 截图
+
+<p align="center">
+  <img src="docs/images/markdown-cheatsheet.png" alt="ColaMD Markdown 语法速查与交互式待办列表" width="49%">
+  <img src="docs/images/markdown-rendering.png" alt="ColaMD Markdown 渲染、代码块、引用、表格与智能换行" width="49%">
+</p>
+
+<p align="center"><em>内置语法速查、交互式待办列表、代码块、引用、表格与智能换行。</em></p>
+
 ## 下载
 
 > 查看 [Releases](https://github.com/marswaveai/colamd/releases) 获取最新构建。
