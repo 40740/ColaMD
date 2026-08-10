@@ -1,4 +1,4 @@
-import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx } from '@milkdown/kit/core'
+import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
 import { DOMSerializer } from '@milkdown/kit/prose/model'
 import remarkBreaks from 'remark-breaks'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
@@ -8,6 +8,7 @@ import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { clipboard } from '@milkdown/kit/plugin/clipboard'
 import { replaceAll } from '@milkdown/kit/utils'
 import { htmlView } from './html-view'
+import { highlight, remarkHighlight, highlightStringifyHandler } from './highlight'
 
 import '@milkdown/kit/prose/view/style/prosemirror.css'
 
@@ -69,7 +70,17 @@ export async function createEditor(
     .config((ctx) => {
       ctx.set(rootCtx, root)
       ctx.set(defaultValueCtx, defaultContent)
-      ctx.set(remarkPluginsCtx, [{ plugin: remarkBreaks, options: {} }])
+      ctx.set(remarkPluginsCtx, [
+        { plugin: remarkBreaks, options: {} },
+        { plugin: remarkHighlight, options: {} },
+      ])
+      // Teach remark-stringify how to emit our custom ==highlight== node
+      const stringifyOptions = ctx.get(remarkStringifyOptionsCtx)
+      ctx.set(remarkStringifyOptionsCtx, {
+        ...stringifyOptions,
+        // 'mark' is a custom node type, not part of the typed Handlers map
+        handlers: { ...stringifyOptions.handlers, mark: highlightStringifyHandler } as typeof stringifyOptions.handlers,
+      })
       if (onChange) {
         ctx.get(listenerCtx).markdownUpdated((_ctx, markdown) => {
           onChange(markdown)
@@ -78,6 +89,7 @@ export async function createEditor(
     })
     .use(commonmark)
     .use(gfm)
+    .use(highlight)
     .use(history)
     .use(listener)
     .use(clipboard)
@@ -100,7 +112,57 @@ export async function createEditor(
     }
   })
 
+  // Click the checkbox of a task list item to toggle its checked state
+  root.addEventListener('click', (e) => {
+    if (!(e.target instanceof HTMLElement)) return
+    const li = e.target.closest('li[data-item-type="task"]') as HTMLElement | null
+    if (!li) return
+    // Only the checkbox area toggles — clicks on the text still place the cursor
+    const rect = li.getBoundingClientRect()
+    if (e.clientX - rect.left > 24) return
+    e.preventDefault()
+    toggleTaskListItem(li)
+  })
+
+  // Cmd/Ctrl+Enter toggles the task list item under the cursor
+  root.addEventListener('keydown', (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.key !== 'Enter') return
+    e.preventDefault()
+    if (!editorInstance) return
+    editorInstance.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      const $pos = view.state.doc.resolve(view.state.selection.from)
+      for (let d = $pos.depth; d >= 0; d--) {
+        const node = $pos.node(d)
+        if (node.type.name === 'list_item' && node.attrs.checked != null) {
+          const tr = view.state.tr.setNodeMarkup($pos.before(d), undefined, {
+            ...node.attrs,
+            checked: !node.attrs.checked,
+          })
+          view.dispatch(tr)
+          return
+        }
+      }
+    })
+  })
+
   return editorInstance
+}
+
+function toggleTaskListItem(li: HTMLElement): void {
+  if (!editorInstance) return
+  editorInstance.action((ctx) => {
+    const view = ctx.get(editorViewCtx)
+    const pos = view.posAtDOM(li, 0)
+    if (pos == null) return
+    const node = view.state.doc.nodeAt(pos)
+    if (!node || node.type.name !== 'list_item' || node.attrs.checked == null) return
+    const tr = view.state.tr.setNodeMarkup(pos, undefined, {
+      ...node.attrs,
+      checked: !node.attrs.checked,
+    })
+    view.dispatch(tr)
+  })
 }
 
 export function getMarkdown(): string {

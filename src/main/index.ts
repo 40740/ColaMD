@@ -50,7 +50,7 @@ function getWinFromEvent(event: Electron.IpcMainInvokeEvent): BrowserWindow | nu
   return BrowserWindow.fromWebContents(event.sender)
 }
 
-function createWindow(filePath?: string): BrowserWindow {
+function createWindow(filePath?: string, initialContent?: string): BrowserWindow {
   const win = new BrowserWindow({
     width: 960,
     height: 720,
@@ -79,6 +79,9 @@ function createWindow(filePath?: string): BrowserWindow {
   win.webContents.on('did-finish-load', () => {
     if (filePath) {
       loadFileInWindow(win, filePath)
+    } else if (initialContent) {
+      // In-memory content (e.g. the Markdown cheatsheet) — no file, no watcher
+      win.webContents.send('file-opened', { path: null, content: initialContent })
     }
   })
 
@@ -471,6 +474,20 @@ const slidesTemplateDir = app.isPackaged
   ? join(process.resourcesPath, 'templates', 'slides')
   : join(__dirname, '../../resources/templates/slides')
 
+// Markdown cheatsheet shown via Help > Markdown 语法速查
+const cheatsheetPath = app.isPackaged
+  ? join(process.resourcesPath, 'templates', 'cheatsheet.md')
+  : join(__dirname, '../../resources/templates/cheatsheet.md')
+
+async function openCheatsheet(): Promise<void> {
+  try {
+    const content = await readFile(cheatsheetPath, 'utf-8')
+    createWindow(undefined, content)
+  } catch {
+    createWindow()
+  }
+}
+
 // Per-directory HTTP servers for slides preview: dir -> { server, port }
 const slidesServers = new Map<string, { port: number; server: ReturnType<typeof createHttpServer> }>()
 
@@ -849,6 +866,11 @@ function buildMenu(): void {
     {
       label: 'Help',
       submenu: [
+        {
+          label: 'Markdown 语法速查',
+          accelerator: 'CmdOrCtrl+Shift+/',
+          click: () => openCheatsheet()
+        },
         {
           label: 'About ColaMD',
           click: () => shell.openExternal('https://github.com/marswaveai/colamd')
