@@ -223,6 +223,57 @@ html, body {
   margin: 0;
 }
 
+/* Task lists (GFM checkboxes) */
+#editor .ProseMirror li[data-item-type="task"] {
+  position: relative;
+  list-style: none;
+  padding-left: 1.5em;
+}
+
+#editor .ProseMirror li[data-item-type="task"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.32em;
+  width: 0.95em;
+  height: 0.95em;
+  border: 1.5px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-color);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+#editor .ProseMirror li[data-item-type="task"][data-checked="true"]::before {
+  background: var(--link-color);
+  border-color: var(--link-color);
+}
+
+#editor .ProseMirror li[data-item-type="task"][data-checked="true"]::after {
+  content: '✓';
+  position: absolute;
+  left: 0.1em;
+  top: 0.18em;
+  font-size: 0.85em;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+  pointer-events: none;
+}
+
+#editor .ProseMirror li[data-item-type="task"][data-checked="true"] > p {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* Highlight (==text==) */
+#editor .ProseMirror mark {
+  background: var(--highlight-bg, #fff3bf);
+  color: inherit;
+  padding: 0 0.15em;
+  border-radius: 3px;
+}
+
 /* Table */
 #editor .ProseMirror table {
   border-collapse: collapse;
@@ -272,6 +323,7 @@ body, body.theme-light {
   --blockquote-border: #d0d7de;
   --table-header-bg: #f6f8fa;
   --selection-bg: rgba(9, 105, 218, 0.15);
+  --highlight-bg: #fff3bf;
 }
 
 body.theme-dark {
@@ -285,6 +337,7 @@ body.theme-dark {
   --blockquote-border: #30363d;
   --table-header-bg: #161b22;
   --selection-bg: rgba(88, 166, 255, 0.2);
+  --highlight-bg: rgba(210, 153, 34, 0.35);
 }
 
 body.theme-elegant {
@@ -301,6 +354,7 @@ body.theme-elegant {
   --table-header-bg: #eae6e1;
   --table-border: #d8d3ce;
   --selection-bg: rgba(196, 75, 43, 0.2);
+  --highlight-bg: #f0d9a8;
 }
 
 body.theme-elegant #editor .ProseMirror {
@@ -349,6 +403,7 @@ body.theme-newsprint {
   --blockquote-border: #999;
   --table-header-bg: #eae6de;
   --selection-bg: rgba(44, 95, 138, 0.15);
+  --highlight-bg: #f3e3a3;
 }
 
 body.theme-newsprint #editor .ProseMirror {

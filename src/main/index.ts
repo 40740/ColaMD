@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from 'electron'
 import { join, basename, dirname, extname } from 'path'
 import { readFile, writeFile, readdir, copyFile, mkdir } from 'fs/promises'
-import { watch, FSWatcher, existsSync, readdirSync, readFileSync, createServer } from 'fs'
+import { watch, FSWatcher, existsSync, readdirSync, readFileSync } from 'fs'
 import { IncomingMessage, ServerResponse } from 'http'
 import { createServer as createHttpServer } from 'http'
 
@@ -50,7 +50,7 @@ function getWinFromEvent(event: Electron.IpcMainInvokeEvent): BrowserWindow | nu
   return BrowserWindow.fromWebContents(event.sender)
 }
 
-function createWindow(filePath?: string): BrowserWindow {
+function createWindow(filePath?: string, initialContent?: string): BrowserWindow {
   const win = new BrowserWindow({
     width: 960,
     height: 720,
@@ -62,7 +62,9 @@ function createWindow(filePath?: string): BrowserWindow {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false
+      sandbox: false,
+      // No spellcheck UI in ColaMD — avoid red squiggles in the editor (issue #7)
+      spellcheck: false
     }
   })
 
@@ -77,6 +79,9 @@ function createWindow(filePath?: string): BrowserWindow {
   win.webContents.on('did-finish-load', () => {
     if (filePath) {
       loadFileInWindow(win, filePath)
+    } else if (initialContent) {
+      // In-memory content (e.g. the Markdown cheatsheet) — no file, no watcher
+      win.webContents.send('file-opened', { path: null, content: initialContent })
     }
   })
 
@@ -147,10 +152,32 @@ function transitionAgentState(win: BrowserWindow, state: WindowState, newState: 
 
 function watchFile(win: BrowserWindow, state: WindowState): void {
   if (!state.filePath) return
-  stopWatching(state)
+  if (state.watcher) {
+    state.watcher.close()
+    state.watcher = null
+  }
+
   const filePath = state.filePath
-  state.watcher = watch(filePath, (eventType) => {
-    if (eventType !== 'change' || state.isInternalSave) return
+  const dir = dirname(filePath)
+  const fileName = basename(filePath)
+  // macOS FSEvents replays recent history when a watcher starts; drop events
+  // fired within this window so opening a file doesn't trigger a spurious reload.
+  let suppressUntil = 0
+
+  const scheduleReload = (): void => {
+    if (state.debounceTimer) clearTimeout(state.debounceTimer)
+    state.debounceTimer = setTimeout(() => {
+      readFile(filePath, 'utf-8')
+        .then((data) => {
+          if (!win.isDestroyed()) win.webContents.send('file-changed', resolveImagePaths(data, filePath))
+        })
+        .catch(() => { /* file mid-replace; a follow-up event will re-trigger */ })
+    }, 100)
+  }
+
+  const onExternalChange = (): void => {
+    if (state.isInternalSave) return
+    if (Date.now() < suppressUntil) return
 
     // Agent activity detection
     const now = Date.now()
@@ -162,15 +189,55 @@ function watchFile(win: BrowserWindow, state: WindowState): void {
       transitionAgentState(win, state, 'active') // reset cooldown timer
     }
 
-    if (state.debounceTimer) clearTimeout(state.debounceTimer)
-    state.debounceTimer = setTimeout(() => {
-      readFile(filePath, 'utf-8')
-        .then((data) => {
-          if (!win.isDestroyed()) win.webContents.send('file-changed', resolveImagePaths(data, filePath))
+    scheduleReload()
+  }
+
+  const establish = (): void => {
+    if (state.filePath !== filePath) return
+    suppressUntil = Date.now() + 300
+    if (state.watcher) {
+      state.watcher.close()
+      state.watcher = null
+    }
+    try {
+      // Watch the parent directory instead of the file: agents often save
+      // atomically (write temp + rename over), which replaces the file's
+      // inode and silently kills a watcher bound to the old file. A
+      // directory watcher survives those and keeps reporting our filename.
+      const watcher = watch(dir, (eventType, filename) => {
+        if (state.isInternalSave) return
+        // filename may be null on some platforms — treat as our file
+        if (filename !== null && filename !== fileName) return
+
+        if (eventType === 'rename') {
+          // Atomic save / file replacement. The dir watcher itself stays
+          // valid, but re-establish anyway to cover platform quirks.
+          onExternalChange()
+          if (filename === fileName && existsSync(filePath)) establish()
+        } else if (eventType === 'change') {
+          onExternalChange()
+        }
+      })
+      watcher.on('error', () => {
+        // Watcher died (directory removed, permissions…). Retry so we
+        // recover automatically when the file comes back.
+        establish()
+      })
+      state.watcher = watcher
+    } catch {
+      // Fallback: watch the file directly if the directory isn't watchable
+      try {
+        const watcher = watch(filePath, (eventType) => {
+          if (eventType !== 'change' || state.isInternalSave) return
+          onExternalChange()
         })
-        .catch(() => {})
-    }, 100)
-  })
+        watcher.on('error', () => establish())
+        state.watcher = watcher
+      } catch { /* file not watchable; nothing to do */ }
+    }
+  }
+
+  establish()
 }
 
 // Rewrite relative image paths in markdown to absolute file:// URLs
@@ -372,7 +439,7 @@ ipcMain.handle('export-pdf', async (event) => {
       'html, body { height: auto !important; overflow: visible !important; } #titlebar { display: none !important; } #editor { height: auto !important; overflow: visible !important; } #editor .ProseMirror { min-height: auto !important; }'
     )
     const pdfData = await win.webContents.printToPDF({
-      marginType: 0,
+      margins: { marginType: 'default' },
       printBackground: true,
       pageSize: 'A4'
     })
@@ -406,6 +473,20 @@ ipcMain.handle('export-html', async (event, htmlContent: string) => {
 const slidesTemplateDir = app.isPackaged
   ? join(process.resourcesPath, 'templates', 'slides')
   : join(__dirname, '../../resources/templates/slides')
+
+// Markdown cheatsheet shown via Help > Markdown 语法速查
+const cheatsheetPath = app.isPackaged
+  ? join(process.resourcesPath, 'templates', 'cheatsheet.md')
+  : join(__dirname, '../../resources/templates/cheatsheet.md')
+
+async function openCheatsheet(): Promise<void> {
+  try {
+    const content = await readFile(cheatsheetPath, 'utf-8')
+    createWindow(undefined, content)
+  } catch {
+    createWindow()
+  }
+}
 
 // Per-directory HTTP servers for slides preview: dir -> { server, port }
 const slidesServers = new Map<string, { port: number; server: ReturnType<typeof createHttpServer> }>()
@@ -796,6 +877,11 @@ function buildMenu(): void {
     {
       label: 'Help',
       submenu: [
+        {
+          label: 'Markdown 语法速查',
+          accelerator: 'CmdOrCtrl+Shift+/',
+          click: () => openCheatsheet()
+        },
         {
           label: 'About ColaMD',
           click: () => shell.openExternal('https://github.com/marswaveai/colamd')
