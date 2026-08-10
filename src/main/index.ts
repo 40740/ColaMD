@@ -923,6 +923,11 @@ function buildMenu(): void {
           accelerator: 'CmdOrCtrl+Shift+B',
           click: () => sendToFocused('toggle-file-panel')
         },
+        {
+          label: '源码模式',
+          accelerator: 'CmdOrCtrl+/',
+          click: () => sendToFocused('toggle-source-mode')
+        },
         { type: 'separator' },
         { label: '切换全屏', role: 'togglefullscreen' }
       ]

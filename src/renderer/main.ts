@@ -8,6 +8,8 @@ function isSlidesContent(content: string): boolean {
 }
 
 let sourceModeActive = false
+// Markdown as it was when source mode was entered, to detect edits on exit
+let sourceModeOriginal = ''
 const editorEl = () => document.getElementById('editor') as HTMLElement
 const sourceEl = () => document.getElementById('source-editor') as HTMLTextAreaElement
 const slidesBtnEl = () => document.getElementById('slides-btn') as HTMLButtonElement
@@ -68,6 +70,7 @@ async function refreshSiblings(): Promise<void> {
 
 function enterSourceMode(content: string): void {
   sourceModeActive = true
+  sourceModeOriginal = content
   editorEl().classList.add('hidden')
   const ta = sourceEl()
   ta.classList.add('visible')
@@ -80,6 +83,19 @@ function exitSourceMode(): void {
   editorEl().classList.remove('hidden')
   sourceEl().classList.remove('visible')
   slidesBtnEl().classList.remove('visible')
+}
+
+// ⌘/Ctrl+/ — switch between WYSIWYG and raw Markdown (see/delete ##, == markers)
+function toggleSourceMode(): void {
+  if (sourceModeActive) {
+    const raw = sourceEl().value
+    exitSourceMode()
+    if (raw !== sourceModeOriginal) dirty = true
+    markApplying()
+    setMarkdown(raw)
+  } else {
+    enterSourceMode(getMarkdown())
+  }
 }
 
 function setContent(content: string): void {
@@ -126,6 +142,7 @@ async function init(): Promise<void> {
 
   fileToggleBtnEl().addEventListener('click', togglePanel)
   api.onToggleFilePanel(() => togglePanel())
+  api.onToggleSourceMode(() => toggleSourceMode())
 
   api.onSiblingsChanged((files) => renderFileList(files))
   updatePanelVisibility()

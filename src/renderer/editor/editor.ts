@@ -2,13 +2,14 @@ import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkP
 import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
 import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
 import { toggleMark } from '@milkdown/kit/prose/commands'
+import { textblockTypeInputRule } from '@milkdown/kit/prose/inputrules'
 import remarkBreaks from 'remark-breaks'
-import { commonmark } from '@milkdown/kit/preset/commonmark'
+import { commonmark, headingSchema } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
 import { history } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
 import { clipboard } from '@milkdown/kit/plugin/clipboard'
-import { replaceAll, $prose } from '@milkdown/kit/utils'
+import { replaceAll, $prose, $inputRule } from '@milkdown/kit/utils'
 import { remarkMathPlugin, katexOptionsCtx, mathInlineSchema, mathBlockSchema } from '@milkdown/plugin-math'
 import { htmlView } from './html-view'
 import { mathModal } from './math-modal'
@@ -56,6 +57,14 @@ const mathEditorPlugin = $prose(() => {
   })
 })
 
+// 全角 ＃(中文输入法)以及 # 后直接跟文字(无空格)也转换为标题。
+// 标准 Milkdown 规则只认 ASCII # + 空格;remark 序列化时会统一输出为 "# " 格式。
+const fullwidthHeadingInputRule = $inputRule((ctx) =>
+  textblockTypeInputRule(/^(?<hashes>[#＃]+)(?=\s|[^\x00-\x7F])/, headingSchema.type(ctx), (match) => ({
+    level: match.groups?.hashes?.length || 1,
+  }))
+)
+
 // Editing conveniences: remove formatting the WYSIWYG view otherwise hides.
 // Registered last so its key handling runs before Milkdown's base keymap.
 const editingKeymap = $prose(() => {
@@ -76,8 +85,8 @@ const editingKeymap = $prose(() => {
           }
         }
 
-        // ⌘/Ctrl+Alt+C — toggle the current block between code block and paragraph
-        if (mod && event.altKey && !event.shiftKey && event.key.toLowerCase() === 'c') {
+        // Shift+~ (Shift+`) — toggle the current block between code block and paragraph
+        if (event.shiftKey && event.code === 'Backquote') {
           if (!selection.empty) return false
           const $from = selection.$from
           const parent = $from.parent
@@ -158,7 +167,7 @@ function enhanceClipboard(e: ClipboardEvent): void {
   e.clipboardData?.setData('text/html', doc.body.innerHTML)
 }
 
-const defaultContent = `# Welcome to ColaMD\n\nStart typing here...\n`
+const defaultContent = `# 老大，准备好月入10w了吗？\n\n从这里开始吧....\n`
 
 export async function createEditor(
   rootId: string,
@@ -191,6 +200,7 @@ export async function createEditor(
     })
     .use(commonmark)
     .use(gfm)
+    .use(fullwidthHeadingInputRule)
     .use(highlight)
     .use(history)
     .use(listener)
