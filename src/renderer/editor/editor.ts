@@ -118,7 +118,6 @@ export async function createEditor(
     .config((ctx) => {
       ctx.set(rootCtx, root)
       ctx.set(defaultValueCtx, defaultContent)
-<<<<<<< HEAD
       ctx.set(remarkPluginsCtx, [
         { plugin: remarkBreaks, options: {} },
         { plugin: remarkHighlight, options: {} },
