@@ -181,7 +181,8 @@ ColaMD will evolve alongside the agent ecosystem:
 - v1.2 — New icon
 - v1.3 — Agent activity indicator, Cmd+click links, rich text copy, smart line breaks, PDF/HTML export, theme persistence
 - v1.4 — Slides: Markdown as Database, HTML template rendering
-- v1.5 — Export Slides: shareable single-file HTML with inlined images (current)
+- v1.5 — Export Slides: shareable single-file HTML with inlined images
+- v1.6 — Robust live sync: atomic-save (rename) detection, watcher self-recovery, spellcheck off (current)
 - Future — More templates, bidirectional sync, multi-file watching
 
 ## License

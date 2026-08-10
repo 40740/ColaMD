@@ -26,6 +26,7 @@ export interface ElectronAPI {
   onNewSlidesContent: (callback: (content: string) => void) => void
   onSetTheme: (callback: (theme: string) => void) => void
   onSetCustomCSS: (callback: (css: string) => void) => void
+  onMenuImportTheme: (callback: () => void) => void
   exportSlides: (content: string) => Promise<boolean>
   onMenuExportSlides: (callback: () => void) => void
   onAgentActivity: (callback: (state: string) => void) => void
