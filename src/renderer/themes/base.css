@@ -389,23 +389,39 @@ body.show-file-panel #source-editor {
   border-radius: 3px;
 }
 
-/* Table */
+/* Table (GitHub-style: zebra rows, thin borders, scrollable wide tables) */
 #editor .ProseMirror table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-spacing: 0;
   border-collapse: collapse;
-  width: 100%;
   margin: 1em 0;
+  font-variant: tabular-nums;
 }
 
-#editor .ProseMirror th,
-#editor .ProseMirror td {
+#editor .ProseMirror table th,
+#editor .ProseMirror table td {
+  padding: 6px 13px;
   border: 1px solid var(--border-color);
-  padding: 8px 12px;
   text-align: left;
 }
 
-#editor .ProseMirror th {
-  background: var(--table-header-bg);
+#editor .ProseMirror table td > :last-child {
+  margin-bottom: 0;
+}
+
+#editor .ProseMirror table th {
   font-weight: 600;
+}
+
+#editor .ProseMirror table tr {
+  background: var(--bg-color);
+}
+
+#editor .ProseMirror table tr:nth-child(2n) {
+  background: var(--table-zebra-bg, var(--table-header-bg));
 }
 
 /* HR */
