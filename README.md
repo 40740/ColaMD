@@ -2,7 +2,7 @@
 
 > A free, elegant Markdown editor for humans and AI agents — with real-time sync for AI-generated changes.
 
-**Language / 语言: [English](README.md) · [中文](README_CN.md)**
+**Language / 语言: [English](README.md) · [中文](README_CN.md)** · [Website](https://colamd.com/)
 
 Markdown has become the de facto standard for writing, note-taking, documentation, and collaboration in the age of AI. Yet many computers still don't have a free, beautiful, capable Markdown reader/editor.
 

@@ -2,7 +2,7 @@
 
 > 一款免费、优雅的 Markdown 编辑器，支持 AI Agent 改动实时同步。
 
-**Language / 语言: [English](README.md) · [中文](README_CN.md)**
+**Language / 语言: [English](README.md) · [中文](README_CN.md)** · [官网](https://colamd.com/)
 
 Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准。但很多人的电脑上依然没有一个免费、好看、好用的 Markdown 阅读器/编辑器。
 
