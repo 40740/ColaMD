@@ -1,8 +1,9 @@
-import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
+import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, parserCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
 import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
 import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
-import { toggleMark } from '@milkdown/kit/prose/commands'
+import { toggleMark, exitCode } from '@milkdown/kit/prose/commands'
 import { textblockTypeInputRule } from '@milkdown/kit/prose/inputrules'
+import type { Node as PMNode } from '@milkdown/kit/prose/model'
 import remarkBreaks from 'remark-breaks'
 import { commonmark, headingSchema } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
@@ -85,8 +86,8 @@ const editingKeymap = $prose(() => {
           }
         }
 
-        // Shift+~ (Shift+`) — toggle the current block between code block and paragraph
-        if (event.shiftKey && event.code === 'Backquote') {
+        // Ctrl+~ (Ctrl+`) — toggle the current block between code block and paragraph
+        if (event.ctrlKey && event.code === 'Backquote') {
           if (!selection.empty) return false
           const $from = selection.$from
           const parent = $from.parent
@@ -108,6 +109,16 @@ const editingKeymap = $prose(() => {
           const $from = selection.$from
           if ($from.parentOffset === 0 && $from.parent.type.name === 'heading') {
             view.dispatch(state.tr.setNodeMarkup($from.before(), state.schema.nodes.paragraph, {}))
+            return true
+          }
+        }
+
+        // Exit a code block: ⌘/Ctrl+Enter, or plain Enter when the block is empty
+        if (event.key === 'Enter' && selection.empty) {
+          const $from = selection.$from
+          const parent = $from.parent
+          if (parent.type.name === 'code_block' && (mod || parent.textContent.length === 0)) {
+            exitCode(state, view.dispatch)
             return true
           }
         }
@@ -217,6 +228,7 @@ export async function createEditor(
   root.addEventListener('cut', enhanceClipboard)
 
   setupCodeCopyButton(root)
+  setupBlockSourceEditor(root)
 
   // Cmd+click (Mac) / Ctrl+click (Win/Linux) to open links in browser
   root.addEventListener('click', (e) => {
@@ -392,4 +404,134 @@ async function copyText(text: string): Promise<boolean> {
     ta.remove()
     return ok
   }
+}
+
+// ─── Per-block source editing ──────────────────────────────────────────────
+// Hover a line and click the small 「源码」 button: that block alone switches
+// to a raw-Markdown textarea (you see the real ## / == / ``` markers and can
+// delete them). ⌘/Ctrl+Enter or clicking away applies it back, Esc cancels.
+// Everything else in the document stays as the rendered WYSIWYG preview.
+
+const SOURCE_BLOCK_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, pre, blockquote, li'
+
+function setupBlockSourceEditor(root: HTMLElement): void {
+  const btn = document.createElement('button')
+  btn.type = 'button'
+  btn.className = 'block-source-btn'
+  btn.textContent = '源码'
+  root.appendChild(btn)
+
+  const ta = document.createElement('textarea')
+  ta.className = 'block-source-editor'
+  ta.spellcheck = false
+  root.appendChild(ta)
+
+  let currentBlock: HTMLElement | null = null
+  let editing = false
+
+  const hideBtn = (): void => {
+    btn.style.display = 'none'
+    currentBlock = null
+  }
+
+  root.addEventListener('mouseover', (e) => {
+    if (editing) return
+    const target = e.target as HTMLElement
+    const block = target.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
+    if (!block || !root.contains(block)) {
+      hideBtn()
+      return
+    }
+    if (block === currentBlock) return
+    currentBlock = block
+    const rect = block.getBoundingClientRect()
+    btn.style.display = 'block'
+    btn.style.top = `${Math.max(rect.top + 8, 8)}px`
+    // For code blocks, keep clear of the copy button sitting at the far right
+    const isPre = block.tagName === 'PRE'
+    btn.style.right = `${Math.max(window.innerWidth - rect.right + (isPre ? 60 : 8), 8)}px`
+  })
+
+  root.addEventListener('mouseout', (e) => {
+    if (editing || !currentBlock) return
+    const target = e.target as HTMLElement
+    if (!target.closest(SOURCE_BLOCK_SELECTOR)) return
+    const related = e.relatedTarget as HTMLElement | null
+    if (related && (related.closest('.block-source-btn') || related.closest('.code-copy-btn'))) return
+    hideBtn()
+  })
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!currentBlock || editing) return
+    const view = getEditorView()
+    if (!view) return
+    const pos = view.posAtDOM(currentBlock, 0)
+    if (pos == null) return
+    const node = view.state.doc.nodeAt(pos)
+    if (!node || !node.isBlock || node.type.name === 'doc') return
+
+    let raw = ''
+    editorInstance?.action((ctx) => {
+      const serializer = ctx.get(serializerCtx)
+      let top: PMNode = node
+      // list items aren't valid top-level blocks — wrap in a list to serialize
+      if (node.type.name === 'list_item') {
+        top = view.state.schema.nodes.bullet_list.create(null, [node])
+      }
+      const tempDoc = view.state.schema.nodes.doc.create(null, [top])
+      raw = serializer(tempDoc)
+    })
+
+    editing = true
+    btn.style.display = 'none'
+    const rect = currentBlock.getBoundingClientRect()
+    ta.value = raw
+    ta.style.display = 'block'
+    ta.style.top = `${rect.top}px`
+    ta.style.left = `${rect.left}px`
+    ta.style.width = `${Math.max(rect.width, 220)}px`
+    ta.style.minHeight = `${Math.max(rect.height, 60)}px`
+    ta.dataset.pos = String(pos)
+    ta.dataset.size = String(node.nodeSize)
+    ta.focus()
+    ta.setSelectionRange(0, 0)
+  })
+
+  const closeEditor = (apply: boolean): void => {
+    if (!editing) return
+    editing = false
+    const pos = Number(ta.dataset.pos || 0)
+    const size = Number(ta.dataset.size || 0)
+    ta.style.display = 'none'
+    if (!apply) return
+    const raw = ta.value
+    editorInstance?.action((ctx) => {
+      const view = ctx.get(editorViewCtx)
+      if (pos <= 0 || pos + size > view.state.doc.content.size) return
+      const parsed = ctx.get(parserCtx)(raw)
+      if (!parsed) return
+      const fragment = parsed.content
+      const tr = view.state.tr
+      if (fragment.size === 0) {
+        tr.replaceWith(pos, pos + size, view.state.schema.nodes.paragraph.create())
+      } else {
+        tr.replaceWith(pos, pos + size, fragment)
+      }
+      view.dispatch(tr)
+    })
+  }
+
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeEditor(false)
+    } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault()
+      closeEditor(true)
+    }
+  })
+
+  ta.addEventListener('blur', () => closeEditor(true))
 }
