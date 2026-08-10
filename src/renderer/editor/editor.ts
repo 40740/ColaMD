@@ -1,9 +1,9 @@
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, parserCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
-import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
+import { Plugin, PluginKey, type Transaction } from '@milkdown/kit/prose/state'
 import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
 import { toggleMark, exitCode } from '@milkdown/kit/prose/commands'
 import { textblockTypeInputRule } from '@milkdown/kit/prose/inputrules'
-import type { Node as PMNode } from '@milkdown/kit/prose/model'
+import type { Node as PMNode, Schema } from '@milkdown/kit/prose/model'
 import remarkBreaks from 'remark-breaks'
 import { commonmark, headingSchema, codeBlockSchema } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
@@ -425,61 +425,23 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 // ─── Per-block source editing ──────────────────────────────────────────────
-// Hover a line and click the small 「源码」 button: that block alone switches
-// to a raw-Markdown textarea (you see the real ## / == / ``` markers and can
-// delete them). ⌘/Ctrl+Enter or clicking away applies it back, Esc cancels.
-// Everything else in the document stays as the rendered WYSIWYG preview.
+// Single-click a line → that block alone switches to a raw-Markdown textarea
+// (you see the real ## / == / ``` markers and can delete them). Whole-format
+// blocks are edited as a whole: clicking anywhere in a table edits the whole
+// table (rows/columns can be removed from the source), clicking a list item
+// edits that item (the item itself can be deleted). ⌘/Ctrl+Enter or clicking
+// away applies it back, Esc cancels. Everything else stays as the rendered
+// WYSIWYG preview. The editor looks like the normal view — no box.
 
-const SOURCE_BLOCK_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, pre, blockquote, li'
+const SOURCE_BLOCK_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, pre, blockquote, li, table, td, th'
 
 function setupBlockSourceEditor(root: HTMLElement): void {
-  const btn = document.createElement('button')
-  btn.type = 'button'
-  btn.className = 'block-source-btn'
-  btn.textContent = '源码'
-  root.appendChild(btn)
-
   const ta = document.createElement('textarea')
   ta.className = 'block-source-editor'
   ta.spellcheck = false
   root.appendChild(ta)
 
-  let currentBlock: HTMLElement | null = null
   let editing = false
-
-  const hideBtn = (): void => {
-    btn.style.display = 'none'
-    currentBlock = null
-  }
-
-  root.addEventListener('mouseover', (e) => {
-    if (editing) return
-    const target = e.target as HTMLElement
-    // Moving onto the button/editor itself must not hide the button
-    if (target.closest('.block-source-btn') || target.closest('.block-source-editor') || target.closest('.code-copy-btn')) return
-    const block = target.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
-    if (!block || !root.contains(block)) {
-      hideBtn()
-      return
-    }
-    if (block === currentBlock) return
-    currentBlock = block
-    const rect = block.getBoundingClientRect()
-    btn.style.display = 'block'
-    btn.style.top = `${Math.max(rect.top + 8, 8)}px`
-    // For code blocks, keep clear of the copy button sitting at the far right
-    const isPre = block.tagName === 'PRE'
-    btn.style.right = `${Math.max(window.innerWidth - rect.right + (isPre ? 60 : 8), 8)}px`
-  })
-
-  root.addEventListener('mouseout', (e) => {
-    if (editing || !currentBlock) return
-    const target = e.target as HTMLElement
-    if (!target.closest(SOURCE_BLOCK_SELECTOR)) return
-    const related = e.relatedTarget as HTMLElement | null
-    if (related && (related.closest('.block-source-btn') || related.closest('.code-copy-btn'))) return
-    hideBtn()
-  })
 
   const openEditor = (blockEl: HTMLElement): void => {
     if (editing) return
@@ -487,7 +449,9 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     if (!view) return
     // posAtDOM(el, 0) returns the position at the START OF THE CONTENT of the
     // element (blockStart + 1), not the block node position — so resolve it and
-    // walk up the ancestor chain to find the enclosing block node.
+    // walk up the ancestor chain to find the block to edit. Whole-format blocks
+    // win: a click inside a table edits the whole table, a click on a list item
+    // edits that item, otherwise the nearest enclosing block.
     const pos = view.posAtDOM(blockEl, 0)
     if (pos == null) return
     const $pos = view.state.doc.resolve(pos)
@@ -495,11 +459,12 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     let nodePos = -1
     for (let d = $pos.depth; d >= 0; d--) {
       const n = $pos.node(d)
-      if (n.isBlock && n.type.name !== 'doc') {
-        node = n
-        nodePos = $pos.before(d)
-        break
-      }
+      const name = n.type.name
+      if (name === 'doc') break
+      if (!n.isBlock) continue
+      node = n
+      nodePos = $pos.before(d)
+      if (name === 'table' || name === 'list_item') break
     }
     if (!node || nodePos < 0) return
     const block = node
@@ -517,7 +482,6 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     })
 
     editing = true
-    btn.style.display = 'none'
     const rect = blockEl.getBoundingClientRect()
     ta.value = raw
     ta.style.display = 'block'
@@ -527,33 +491,16 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     ta.style.minHeight = `${Math.max(rect.height, 60)}px`
     ta.dataset.pos = String(nodePos)
     ta.dataset.size = String(block.nodeSize)
+    ta.dataset.type = block.type.name
     ta.focus()
     ta.setSelectionRange(0, 0)
   }
-
-  btn.addEventListener('click', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    try {
-      // Resolve the block fresh at click time — the element cached during hover
-      // can go stale (and posAtDOM returns null) if the doc re-rendered between
-      // hovering and clicking, which made the button appear dead.
-      const prevDisplay = btn.style.display
-      btn.style.display = 'none'
-      const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
-      btn.style.display = prevDisplay
-      const block = (under?.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null) || currentBlock
-      if (block && root.contains(block)) openEditor(block)
-    } catch (err) {
-      console.error('block source edit failed:', err)
-    }
-  })
 
   // Single-click a line → open the source editor for that block only
   root.addEventListener('click', (e) => {
     if (editing) return
     const target = e.target as HTMLElement
-    if (target.closest('.block-source-btn') || target.closest('.block-source-editor') || target.closest('.code-copy-btn')) return
+    if (target.closest('.block-source-editor') || target.closest('.code-copy-btn')) return
     // Cmd/Ctrl+click on a link opens it — handled elsewhere
     if ((e.metaKey || e.ctrlKey) && target.closest('a')) return
     // Task checkbox clicks toggle the checkbox — handled elsewhere
@@ -566,22 +513,55 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     if (block && root.contains(block)) openEditor(block)
   })
 
+  const applyListItemSource = (tr: Transaction, view: EditorView, nodePos: number, fragment: unknown, schema: Schema): void => {
+    // The edited item leaves its list, so replace the whole parent list with the
+    // remaining items (each wrapped in its own list — the markdown round-trips
+    // identically) plus the parsed result spliced at the edited index. Valid in
+    // any schema context and keeps position, marker style and nested content.
+    // Resolve INSIDE the item (nodePos+1): resolving at the item boundary lands
+    // in the parent list instead, which breaks the depth math below.
+    const $pos = view.state.doc.resolve(nodePos + 1)
+    const listDepth = $pos.depth - 1
+    if (listDepth < 0) return
+    const parentList = $pos.node(listDepth)
+    // index(depth) is the index of the node at depth+1 within node(depth) — so
+    // index(listDepth) is the edited item's index inside its parent list.
+    const editedIndex = $pos.index(listDepth)
+    const listStart = $pos.before(listDepth)
+    const listEnd = $pos.after(listDepth)
+    const frag = fragment as { childCount: number; child(i: number): PMNode }
+    const blocks: PMNode[] = []
+    for (let i = 0; i < parentList.childCount; i++) {
+      if (i === editedIndex) {
+        for (let j = 0; j < frag.childCount; j++) blocks.push(frag.child(j))
+      } else {
+        blocks.push(parentList.type.create(parentList.attrs, [parentList.child(i)]))
+      }
+    }
+    if (blocks.length === 0) blocks.push(schema.nodes.paragraph.create())
+    tr.replaceWith(listStart, listEnd, blocks)
+  }
+
   const closeEditor = (apply: boolean): void => {
     if (!editing) return
     editing = false
     const pos = Number(ta.dataset.pos || 0)
     const size = Number(ta.dataset.size || 0)
+    const type = ta.dataset.type || ''
     ta.style.display = 'none'
     if (apply) {
       const raw = ta.value
       editorInstance?.action((ctx) => {
         const view = ctx.get(editorViewCtx)
-        if (pos > 0 && pos + size <= view.state.doc.content.size) {
+        // pos can legitimately be 0 (the first block of the document)
+        if (pos >= 0 && pos + size <= view.state.doc.content.size) {
           const parsed = ctx.get(parserCtx)(raw)
           if (parsed) {
             const fragment = parsed.content
             const tr = view.state.tr
-            if (fragment.size === 0) {
+            if (type === 'list_item') {
+              applyListItemSource(tr, view, pos, fragment, view.state.schema)
+            } else if (fragment.size === 0) {
               tr.replaceWith(pos, pos + size, view.state.schema.nodes.paragraph.create())
             } else {
               tr.replaceWith(pos, pos + size, fragment)
