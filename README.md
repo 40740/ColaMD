@@ -39,7 +39,7 @@ This is what **Agent Native** means: built from the ground up for a world where 
 ### Themes & Export
 
 - **Themes** — 4 built-in themes + [downloadable themes](themes/) + import custom CSS.
-- **Export** — PDF and HTML.
+- **Export** — PDF.
 - **Cross-platform** — macOS, Windows, Linux.
 
 ## Slides — Markdown as Database
@@ -179,7 +179,7 @@ ColaMD will evolve alongside the agent ecosystem:
 
 - v1.1 — Live file reload, file associations, drag & drop, themes
 - v1.2 — New icon
-- v1.3 — Agent activity indicator, Cmd+click links, rich text copy, smart line breaks, PDF/HTML export, theme persistence
+- v1.3 — Agent activity indicator, Cmd+click links, rich text copy, smart line breaks, PDF export, theme persistence
 - v1.4 — Slides: Markdown as Database, HTML template rendering
 - v1.5 — Export Slides: shareable single-file HTML with inlined images
 - v1.6 — Robust live sync: atomic-save (rename) detection, watcher self-recovery, spellcheck off

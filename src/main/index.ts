@@ -451,23 +451,6 @@ ipcMain.handle('export-pdf', async (event) => {
   }
 })
 
-ipcMain.handle('export-html', async (event, htmlContent: string) => {
-  const win = getWinFromEvent(event)
-  if (!win) return false
-  const result = await dialog.showSaveDialog(win, {
-    defaultPath: suggestFileName(win),
-    filters: [{ name: 'HTML', extensions: ['html'] }]
-  })
-  if (result.canceled || !result.filePath) return false
-
-  try {
-    await writeFile(result.filePath, htmlContent, 'utf-8')
-    return true
-  } catch {
-    return false
-  }
-})
-
 // ─── Slides feature ──────────────────────────────────────────────────────────
 
 const slidesTemplateDir = app.isPackaged
@@ -819,10 +802,6 @@ function buildMenu(): void {
         {
           label: 'Export PDF...',
           click: () => sendToFocused('menu-export-pdf')
-        },
-        {
-          label: 'Export HTML...',
-          click: () => sendToFocused('menu-export-html')
         },
         {
           label: 'Export Slides...',

@@ -1,7 +1,10 @@
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
+<<<<<<< HEAD
 import { DOMSerializer } from '@milkdown/kit/prose/model'
 import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
 import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
+=======
+>>>>>>> main
 import remarkBreaks from 'remark-breaks'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
@@ -226,19 +229,6 @@ export function getMarkdown(): string {
     markdown = serializer(view.state.doc)
   })
   return markdown
-}
-
-export function getHTML(): string {
-  if (!editorInstance) return ''
-  let html = ''
-  editorInstance.action((ctx) => {
-    const view = ctx.get(editorViewCtx)
-    const div = document.createElement('div')
-    const fragment = DOMSerializer.fromSchema(view.state.schema).serializeFragment(view.state.doc.content)
-    div.appendChild(fragment)
-    html = div.innerHTML
-  })
-  return html
 }
 
 export function setMarkdown(content: string): void {

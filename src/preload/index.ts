@@ -6,7 +6,6 @@ export interface ElectronAPI {
   saveFile: (content: string) => Promise<boolean>
   saveFileAs: (content: string) => Promise<boolean>
   exportPDF: () => Promise<boolean>
-  exportHTML: (html: string) => Promise<boolean>
   newSlides: () => Promise<string | null>
   openAsSlides: (content: string) => Promise<boolean>
   loadCustomTheme: () => Promise<{ name: string; css: string } | null>
@@ -20,7 +19,6 @@ export interface ElectronAPI {
   onMenuSave: (callback: () => void) => void
   onMenuSaveAs: (callback: () => void) => void
   onMenuExportPDF: (callback: () => void) => void
-  onMenuExportHTML: (callback: () => void) => void
   onMenuNewSlides: (callback: () => void) => void
   onMenuOpenAsSlides: (callback: () => void) => void
   onNewSlidesContent: (callback: (content: string) => void) => void
@@ -40,7 +38,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFile: (content: string) => ipcRenderer.invoke('save-file', content),
   saveFileAs: (content: string) => ipcRenderer.invoke('save-file-as', content),
   exportPDF: () => ipcRenderer.invoke('export-pdf'),
-  exportHTML: (html: string) => ipcRenderer.invoke('export-html', html),
   exportSlides: (content: string) => ipcRenderer.invoke('export-slides', content),
   newSlides: () => ipcRenderer.invoke('new-slides'),
   openAsSlides: (content: string) => ipcRenderer.invoke('open-as-slides', content),
@@ -68,9 +65,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onMenuExportPDF: (callback: () => void) => {
     ipcRenderer.on('menu-export-pdf', () => callback())
-  },
-  onMenuExportHTML: (callback: () => void) => {
-    ipcRenderer.on('menu-export-html', () => callback())
   },
   onMenuNewSlides: (callback: () => void) => {
     ipcRenderer.on('menu-new-slides', () => callback())
