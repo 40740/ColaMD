@@ -35,7 +35,7 @@ html, body {
 #slides-btn {
   position: absolute;
   top: 14px;
-  right: 32px;
+  right: 68px;
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -49,6 +49,37 @@ html, body {
   justify-content: center;
   -webkit-app-region: no-drag;
   transition: background 0.15s, color 0.15s;
+}
+
+#file-toggle-btn {
+  position: absolute;
+  top: 14px;
+  right: 32px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: no-drag;
+  transition: background 0.15s, color 0.15s;
+}
+
+#file-toggle-btn:hover {
+  background: rgba(127, 127, 127, 0.14);
+  color: var(--text-color);
+}
+
+#file-toggle-btn.active {
+  color: #F1752D;
+}
+
+#file-toggle-btn.active:hover {
+  background: rgba(241, 117, 45, 0.14);
 }
 
 #slides-btn:hover {
@@ -295,14 +326,14 @@ body.show-file-panel #source-editor {
 #editor .ProseMirror li[data-item-type="task"] {
   position: relative;
   list-style: none;
-  padding-left: 1.5em;
+  padding-left: 1.6em;
 }
 
 #editor .ProseMirror li[data-item-type="task"]::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 0.32em;
+  top: 0.3em;
   width: 0.95em;
   height: 0.95em;
   border: 1.5px solid var(--border-color);
@@ -312,21 +343,13 @@ body.show-file-panel #source-editor {
   transition: background 0.15s, border-color 0.15s;
 }
 
-#editor .ProseMirror li[data-item-type="task"][data-checked="true"]::before {
-  background: var(--link-color);
-  border-color: var(--link-color);
+#editor .ProseMirror li[data-item-type="task"]:hover::before {
+  border-color: var(--text-muted);
 }
 
-#editor .ProseMirror li[data-item-type="task"][data-checked="true"]::after {
-  content: '✓';
-  position: absolute;
-  left: 0.1em;
-  top: 0.18em;
-  font-size: 0.85em;
-  line-height: 1;
-  font-weight: 700;
-  color: #fff;
-  pointer-events: none;
+#editor .ProseMirror li[data-item-type="task"][data-checked="true"]::before {
+  background: var(--link-color) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8l3 3 6-6.5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 80% no-repeat;
+  border-color: var(--link-color);
 }
 
 #editor .ProseMirror li[data-item-type="task"][data-checked="true"] > p {

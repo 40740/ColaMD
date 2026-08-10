@@ -187,7 +187,8 @@ ColaMD will evolve alongside the agent ecosystem:
 - v1.6 — Robust live sync: atomic-save (rename) detection, watcher self-recovery, spellcheck off
 - v1.6.1 — Editable task lists (click / ⌘+Enter), ==highlight== syntax, Markdown cheatsheet
 - v1.6.2 — Remove HTML export
-- v1.7 — Same-directory file list: switch files in place, live updates when agents create/remove files; search (⌘F) + LaTeX (⌘⇧E) from community PR #14 (current)
+- v1.7 — Same-directory file list: switch files in place, live updates when agents create/remove files; search (⌘F) + LaTeX (⌘⇧E) from community PR #14
+- v1.7.1 — Task checkbox click fix, centered SVG checkmark, titlebar file-panel toggle button (current)
 - Future — More templates, bidirectional sync, cross-directory file browsing
 
 ## License

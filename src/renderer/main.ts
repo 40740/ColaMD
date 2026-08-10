@@ -13,6 +13,7 @@ const sourceEl = () => document.getElementById('source-editor') as HTMLTextAreaE
 const slidesBtnEl = () => document.getElementById('slides-btn') as HTMLButtonElement
 const filePanelEl = () => document.getElementById('file-panel') as HTMLElement
 const fileListEl = () => document.getElementById('file-list') as HTMLElement
+const fileToggleBtnEl = () => document.getElementById('file-toggle-btn') as HTMLButtonElement
 
 // --- Same-directory file panel ---
 let currentFilePath: string | null = null
@@ -36,6 +37,13 @@ function updatePanelVisibility(): void {
   const show = currentFilePath !== null && !manualHidden
   filePanelEl().hidden = !show
   document.body.classList.toggle('show-file-panel', show)
+  fileToggleBtnEl().classList.toggle('active', show)
+}
+
+function togglePanel(): void {
+  manualHidden = !manualHidden
+  localStorage.setItem('file-panel-hidden', manualHidden ? '1' : '0')
+  updatePanelVisibility()
 }
 
 function renderFileList(files: import('../preload/index').SiblingFile[]): void {
@@ -116,11 +124,8 @@ async function init(): Promise<void> {
     await api.openSibling(btn.dataset.path)
   })
 
-  api.onToggleFilePanel(() => {
-    manualHidden = !manualHidden
-    localStorage.setItem('file-panel-hidden', manualHidden ? '1' : '0')
-    updatePanelVisibility()
-  })
+  fileToggleBtnEl().addEventListener('click', togglePanel)
+  api.onToggleFilePanel(() => togglePanel())
 
   api.onSiblingsChanged((files) => renderFileList(files))
   updatePanelVisibility()

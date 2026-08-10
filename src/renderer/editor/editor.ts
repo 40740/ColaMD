@@ -172,7 +172,7 @@ export async function createEditor(
     const rect = li.getBoundingClientRect()
     if (e.clientX - rect.left > 24) return
     e.preventDefault()
-    toggleTaskListItem(li)
+    toggleTaskListItem(e)
   })
 
   // Cmd/Ctrl+Enter toggles the task list item under the cursor
@@ -200,19 +200,27 @@ export async function createEditor(
   return editorInstance
 }
 
-function toggleTaskListItem(li: HTMLElement): void {
+function toggleTaskListItem(e: MouseEvent): void {
   if (!editorInstance) return
   editorInstance.action((ctx) => {
     const view = ctx.get(editorViewCtx)
-    const pos = view.posAtDOM(li, 0)
-    if (pos == null) return
-    const node = view.state.doc.nodeAt(pos)
-    if (!node || node.type.name !== 'list_item' || node.attrs.checked == null) return
-    const tr = view.state.tr.setNodeMarkup(pos, undefined, {
-      ...node.attrs,
-      checked: !node.attrs.checked,
-    })
-    view.dispatch(tr)
+    // posAtDOM(li, 0) lands inside the li (on its first child), not on the
+    // list_item node itself — locate by click coordinates instead and walk up
+    // the tree, same as the ⌘+Enter path.
+    const coords = view.posAtCoords({ left: e.clientX, top: e.clientY })
+    if (!coords) return
+    const $pos = view.state.doc.resolve(coords.pos)
+    for (let d = $pos.depth; d >= 0; d--) {
+      const node = $pos.node(d)
+      if (node.type.name === 'list_item' && node.attrs.checked != null) {
+        const tr = view.state.tr.setNodeMarkup($pos.before(d), undefined, {
+          ...node.attrs,
+          checked: !node.attrs.checked,
+        })
+        view.dispatch(tr)
+        return
+      }
+    }
   })
 }
 
