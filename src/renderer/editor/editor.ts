@@ -58,10 +58,11 @@ const mathEditorPlugin = $prose(() => {
   })
 })
 
-// 全角 ＃(中文输入法)以及 # 后直接跟文字(无空格)也转换为标题。
-// 标准 Milkdown 规则只认 ASCII # + 空格;remark 序列化时会统一输出为 "# " 格式。
+// 全角 ＃(中文输入法打出的)加空格也能转换为标题。
+// 注意:不做“# 后直接跟中文”的无空格转换——那会在输入法拼音组合时触发
+// 替换事务,导致拼音直接上屏或丢字。标题仍需 # + 空格。
 const fullwidthHeadingInputRule = $inputRule((ctx) =>
-  textblockTypeInputRule(/^(?<hashes>[#＃]+)(?=\s|[^\x00-\x7F])/, headingSchema.type(ctx), (match) => ({
+  textblockTypeInputRule(/^(?<hashes>[#＃]+)\s$/, headingSchema.type(ctx), (match) => ({
     level: match.groups?.hashes?.length || 1,
   }))
 )
@@ -437,6 +438,8 @@ function setupBlockSourceEditor(root: HTMLElement): void {
   root.addEventListener('mouseover', (e) => {
     if (editing) return
     const target = e.target as HTMLElement
+    // Moving onto the button/editor itself must not hide the button
+    if (target.closest('.block-source-btn') || target.closest('.block-source-editor') || target.closest('.code-copy-btn')) return
     const block = target.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
     if (!block || !root.contains(block)) {
       hideBtn()
@@ -461,13 +464,11 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     hideBtn()
   })
 
-  btn.addEventListener('click', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!currentBlock || editing) return
+  const openEditor = (blockEl: HTMLElement): void => {
+    if (editing) return
     const view = getEditorView()
     if (!view) return
-    const pos = view.posAtDOM(currentBlock, 0)
+    const pos = view.posAtDOM(blockEl, 0)
     if (pos == null) return
     const node = view.state.doc.nodeAt(pos)
     if (!node || !node.isBlock || node.type.name === 'doc') return
@@ -486,7 +487,7 @@ function setupBlockSourceEditor(root: HTMLElement): void {
 
     editing = true
     btn.style.display = 'none'
-    const rect = currentBlock.getBoundingClientRect()
+    const rect = blockEl.getBoundingClientRect()
     ta.value = raw
     ta.style.display = 'block'
     ta.style.top = `${rect.top}px`
@@ -497,6 +498,29 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     ta.dataset.size = String(node.nodeSize)
     ta.focus()
     ta.setSelectionRange(0, 0)
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (currentBlock) openEditor(currentBlock)
+  })
+
+  // Single-click a line → open the source editor for that block only
+  root.addEventListener('click', (e) => {
+    if (editing) return
+    const target = e.target as HTMLElement
+    if (target.closest('.block-source-btn') || target.closest('.block-source-editor') || target.closest('.code-copy-btn')) return
+    // Cmd/Ctrl+click on a link opens it — handled elsewhere
+    if ((e.metaKey || e.ctrlKey) && target.closest('a')) return
+    // Task checkbox clicks toggle the checkbox — handled elsewhere
+    const taskLi = target.closest('li[data-item-type="task"]') as HTMLElement | null
+    if (taskLi) {
+      const r = taskLi.getBoundingClientRect()
+      if (e.clientX - r.left <= 24) return
+    }
+    const block = target.closest(SOURCE_BLOCK_SELECTOR) as HTMLElement | null
+    if (block && root.contains(block)) openEditor(block)
   })
 
   const closeEditor = (apply: boolean): void => {
@@ -505,22 +529,28 @@ function setupBlockSourceEditor(root: HTMLElement): void {
     const pos = Number(ta.dataset.pos || 0)
     const size = Number(ta.dataset.size || 0)
     ta.style.display = 'none'
-    if (!apply) return
-    const raw = ta.value
-    editorInstance?.action((ctx) => {
-      const view = ctx.get(editorViewCtx)
-      if (pos <= 0 || pos + size > view.state.doc.content.size) return
-      const parsed = ctx.get(parserCtx)(raw)
-      if (!parsed) return
-      const fragment = parsed.content
-      const tr = view.state.tr
-      if (fragment.size === 0) {
-        tr.replaceWith(pos, pos + size, view.state.schema.nodes.paragraph.create())
-      } else {
-        tr.replaceWith(pos, pos + size, fragment)
-      }
-      view.dispatch(tr)
-    })
+    if (apply) {
+      const raw = ta.value
+      editorInstance?.action((ctx) => {
+        const view = ctx.get(editorViewCtx)
+        if (pos > 0 && pos + size <= view.state.doc.content.size) {
+          const parsed = ctx.get(parserCtx)(raw)
+          if (parsed) {
+            const fragment = parsed.content
+            const tr = view.state.tr
+            if (fragment.size === 0) {
+              tr.replaceWith(pos, pos + size, view.state.schema.nodes.paragraph.create())
+            } else {
+              tr.replaceWith(pos, pos + size, fragment)
+            }
+            view.dispatch(tr)
+          }
+        }
+        view.focus()
+      })
+    } else {
+      editorInstance?.action((ctx) => ctx.get(editorViewCtx).focus())
+    }
   }
 
   ta.addEventListener('keydown', (e) => {
