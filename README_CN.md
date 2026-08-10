@@ -2,9 +2,11 @@
 
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-**一个开源、免费、轻量、优雅的 Markdown 编辑器。**
+**ColaMD 是一款开源、免费、轻量、优雅的 Markdown 编辑器，目标是成为 Markdown 世界可靠的基础设施。**
 
-Markdown 已经成为写作、记录和协作的事实标准。ColaMD 想做一款简单、专注、可靠的桌面编辑器，成为每个人都可以使用的 Markdown 基础设施。同时，它也是一款对 AI Agent 友好的编辑器：当 Agent 修改正在打开的 `.md` 文件时，ColaMD 会实时同步改动。
+Markdown 已经成为写作、记录、文档和协作的事实标准。我们的目标很明确：把 ColaMD 做成最好用的免费 Markdown 编辑器，成为每个人日常都能依赖的基础工具。
+
+ColaMD 同时也是一款对 AI Agent 友好的编辑器：当 Agent 修改正在打开的 `.md` 文件时，ColaMD 会实时同步改动。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
@@ -13,32 +15,27 @@ Markdown 已经成为写作、记录和协作的事实标准。ColaMD 想做一�
 
 ---
 
-## 为什么做 ColaMD？
+## 为什么选择 ColaMD？
 
-Markdown 无处不在：文档、笔记、项目计划，以及各种 AI 工具生成的文件。我们需要一款简单、快速、可靠的 Markdown 编辑器，作为每个人都能使用的基础设施。
+过去的 Markdown 编辑器，大多默认文件由一个人独立编辑。今天，Markdown 也已经成为 AI 工具生成文档、笔记、计划和报告时共同使用的语言。
 
-ColaMD 先专注于做好编辑器本身，再为 AI 协作增加一个重要能力：**实时同步**。当 AI Agent 修改正在打开的 `.md` 文件时，ColaMD 会自动检测变化并实时刷新内容。不需要关闭文件、重新打开，也不需要手动刷新。
+ColaMD 先把编辑器本身做得简单、专注、可靠，再让 AI 协作变得自然：打开文件，让 Agent 工作，所有改动实时出现在编辑器里。不需要关闭文件、重新打开，也不需要手动刷新。
 
 ## 功能
 
-### 实时同步
-
-- **实时 Agent 同步** — AI Agent（Claude Code、Cursor、Copilot 等）修改 `.md` 文件时，ColaMD 自动检测并即时刷新。
-- **Agent 活动指示器** — 标题栏的小圆点告诉你 Agent 的状态：橙色呼吸闪烁表示正在写入，绿色闪现表示写入完成。
-- **Cmd+点击链接** — 点击编辑器中的链接直接在浏览器打开。
-
-### 编辑器
-
+- **实时 Agent 同步** — Claude Code、Cursor、Copilot 或其他 AI Agent 修改文件后，内容实时出现在编辑器中。
+- **Agent 活动指示器** — 标题栏小圆点显示 Agent 正在写入或已经完成。
 - **真正的所见即所得** — 输入 Markdown，直接看到富文本，无需分屏预览。
-- **智能换行** — 单个换行即渲染为换行，匹配 AI Agent 写 Markdown 的习惯。
-- **富文本复制** — 复制内容后可直接粘贴到公众号、邮件等富文本编辑器，格式完整保留。
-- **极简设计** — 没有工具栏，没有侧边栏，没有干扰。只有你的内容。
-
-### 主题与导出
-
-- **主题** — 4 个内置主题 + [可下载主题](themes/) + 自定义 CSS 导入。
-- **导出** — PDF。
-- **跨平台** — macOS、Windows、Linux。
+- **同目录文件列表** — 发现并切换当前目录下的 Markdown 文件；Agent 新建或删除文件后自动更新。
+- **待办列表** — 直接点击复选框完成任务，也支持快捷键。
+- **高亮与 LaTeX** — 使用 `==高亮文本==`，并通过 KaTeX 渲染数学公式。
+- **文档搜索** — 使用 ⌘/Ctrl+F 快速查找内容。
+- **智能换行** — 单个换行直接渲染为换行，符合人类和 AI 工具写 Markdown 的习惯。
+- **富文本复制** — 复制后粘贴到公众号、微信、邮件等富文本编辑器，格式完整保留。
+- **主题** — 4 个内置主题、可下载主题，以及自定义 CSS 导入。
+- **PDF 导出** — 在需要交付时，将 Markdown 文档导出为 PDF。
+- **极简设计** — 没有工具栏，没有永久侧边栏，专注于内容本身。
+- **跨平台** — 支持 macOS、Windows 和 Linux。
 
 ## 下载
 

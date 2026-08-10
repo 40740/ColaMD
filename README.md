@@ -2,9 +2,11 @@
 
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-**An open-source, free, lightweight, and elegant Markdown editor.**
+**ColaMD is an open-source, free, lightweight, and elegant Markdown editor — built to become a dependable foundation for Markdown.**
 
-Markdown has become the de facto standard for writing, note-taking, and collaboration. ColaMD is a clean, focused desktop editor built to be a simple foundation for working with Markdown. It is also friendly to AI agents: when an agent edits an open `.md` file, ColaMD syncs the changes in real time.
+Markdown has become the de facto standard for writing, note-taking, documentation, and collaboration. Our ambition is simple: make ColaMD the best free Markdown editor, and make it reliable enough to become everyday infrastructure.
+
+ColaMD is also friendly to AI agents. When an agent edits an open `.md` file, ColaMD syncs the changes in real time.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
@@ -15,32 +17,25 @@ Markdown has become the de facto standard for writing, note-taking, and collabor
 
 ## Why ColaMD?
 
-Markdown is everywhere: documentation, notes, project plans, and the files created by AI tools. We need a Markdown editor that stays simple, fast, and dependable — a piece of basic infrastructure anyone can use.
+Most Markdown editors were designed for files edited by one person at a time. Today, Markdown is also the common language of AI tools that generate documentation, notes, plans, and reports.
 
-ColaMD is designed around that idea. It gives you a focused writing experience first, then adds one important difference for AI-assisted work: **Live Agent Sync**. When an AI agent edits an open `.md` file, ColaMD detects the change and refreshes the content in real time. No closing and reopening files, no manual refresh, no friction.
+ColaMD keeps the editor simple for everyone, while making collaboration with AI feel natural. Open a file, let your agent work, and see every change as it happens — without closing the file, reopening it, or manually refreshing the page.
 
 ## Features
 
-### Live Agent Sync
-
-- **Live Agent Sync** — When an AI agent (Claude Code, Cursor, Copilot, etc.) modifies your `.md` file, ColaMD detects the change and refreshes instantly.
-- **Agent Activity Indicator** — A subtle dot in the titlebar shows you when an agent is writing: orange breathing pulse while active, green flash when done. You always know if your agent is working.
-- **Cmd+Click Links** — Click any link in the editor to open it in your browser.
-
-### Editor
-
-- **True WYSIWYG** — Type Markdown, see rich text. No split-pane preview.
-- **Smart Line Breaks** — Single newlines render as line breaks, matching how AI agents write Markdown.
-- **Rich Text Copy** — Copy content and paste into WeChat, email, or any rich text editor with formatting preserved.
-- **Search & LaTeX** — ⌘/Ctrl+F to search; ⌘/Ctrl+Shift+E to insert formulas (KaTeX rendering).
-- **Same-Directory File List** — When a file is open, a slim left panel lists the Markdown files in the same directory. Click to switch; files created or removed by your agent appear instantly. Hide with ⌘/Ctrl+Shift+B.
-- **Minimal by Design** — No toolbar, no persistent sidebar, no distractions. Just your content.
-
-### Themes & Export
-
-- **Themes** — 4 built-in themes + [downloadable themes](themes/) + import custom CSS.
-- **Export** — PDF.
-- **Cross-platform** — macOS, Windows, Linux.
+- **Live Agent Sync** — Changes made by Claude Code, Cursor, Copilot, or other AI agents appear in the editor in real time.
+- **Agent Activity Indicator** — A subtle titlebar dot shows when an agent is writing and when it has finished.
+- **True WYSIWYG Editing** — Type Markdown and see rich text directly. No split-pane preview.
+- **Same-Directory File List** — Discover and switch between Markdown files in the current folder. Files created or removed by your agent appear automatically.
+- **Task Lists** — Click checkboxes to complete tasks, or use the keyboard shortcut.
+- **Highlights & LaTeX** — Write `==highlighted text==` and render mathematical formulas with KaTeX.
+- **Search** — Find anything in the current document with ⌘/Ctrl+F.
+- **Smart Line Breaks** — Single newlines render as line breaks, matching how people and AI tools write Markdown.
+- **Rich Text Copy** — Copy content with formatting preserved into WeChat, email, and other rich-text editors.
+- **Themes** — Four built-in themes, downloadable themes, and custom CSS imports.
+- **PDF Export** — Turn your Markdown document into a PDF when you need a finished copy.
+- **Minimal by Design** — No toolbar, no permanent sidebar, no distractions.
+- **Cross-Platform** — Available for macOS, Windows, and Linux.
 
 ## Download
 
