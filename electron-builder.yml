@@ -12,6 +12,8 @@ files:
 extraResources:
   - from: resources/templates
     to: templates
+  - from: resources/demo
+    to: demo
 
 npmArgs:
   - "--loglevel=error"
