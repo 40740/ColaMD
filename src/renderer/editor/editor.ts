@@ -1,6 +1,7 @@
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, remarkPluginsCtx, remarkStringifyOptionsCtx } from '@milkdown/kit/core'
 import { Plugin, PluginKey } from '@milkdown/kit/prose/state'
 import { DecorationSet, type EditorView } from '@milkdown/kit/prose/view'
+import { toggleMark } from '@milkdown/kit/prose/commands'
 import remarkBreaks from 'remark-breaks'
 import { commonmark } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
@@ -49,6 +50,59 @@ const mathEditorPlugin = $prose(() => {
           mathModal.show(currentValue, isBlock, nodePos)
           return true
         }
+        return false
+      }
+    }
+  })
+})
+
+// Editing conveniences: remove formatting the WYSIWYG view otherwise hides.
+// Registered last so its key handling runs before Milkdown's base keymap.
+const editingKeymap = $prose(() => {
+  return new Plugin({
+    props: {
+      handleKeyDown(view, event) {
+        const { state } = view
+        const { selection } = state
+        const mod = event.metaKey || event.ctrlKey
+
+        // ⌘/Ctrl+Shift+H — toggle ==highlight== on the selection
+        // (removes the mark when already highlighted, text is kept)
+        if (mod && event.shiftKey && !event.altKey && event.key.toLowerCase() === 'h') {
+          const markType = state.schema.marks.highlight
+          if (markType) {
+            toggleMark(markType)(state, view.dispatch)
+            return true
+          }
+        }
+
+        // ⌘/Ctrl+Alt+C — toggle the current block between code block and paragraph
+        if (mod && event.altKey && !event.shiftKey && event.key.toLowerCase() === 'c') {
+          if (!selection.empty) return false
+          const $from = selection.$from
+          const parent = $from.parent
+          const codeBlock = state.schema.nodes.code_block
+          const paragraph = state.schema.nodes.paragraph
+          if (parent.type === codeBlock) {
+            view.dispatch(state.tr.setNodeMarkup($from.before(), paragraph, {}))
+            return true
+          }
+          if (parent.type === paragraph) {
+            view.dispatch(state.tr.setNodeMarkup($from.before(), codeBlock, { language: '' }))
+            return true
+          }
+          return false
+        }
+
+        // Backspace / Delete at the very start of a heading — turn it back into a paragraph
+        if ((event.key === 'Backspace' || event.key === 'Delete') && selection.empty) {
+          const $from = selection.$from
+          if ($from.parentOffset === 0 && $from.parent.type.name === 'heading') {
+            view.dispatch(state.tr.setNodeMarkup($from.before(), state.schema.nodes.paragraph, {}))
+            return true
+          }
+        }
+
         return false
       }
     }
@@ -145,6 +199,7 @@ export async function createEditor(
     .use([remarkMathPlugin, katexOptionsCtx, mathInlineSchema, mathBlockSchema].flat())
     .use(mathEditorPlugin)
     .use(searchHighlight)
+    .use(editingKeymap)
     .create()
 
   // Enhance clipboard with inline styles for rich text paste (e.g. WeChat)
