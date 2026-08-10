@@ -815,16 +815,16 @@ function buildMenu(): void {
   } catch { /* themes dir may not exist yet */ }
 
   const themeSubmenu: Electron.MenuItemConstructorOptions[] = [
-    { label: 'Light', click: () => sendToFocused('set-theme', 'light') },
-    { label: 'Dark', click: () => sendToFocused('set-theme', 'dark') },
-    { label: 'Elegant', click: () => sendToFocused('set-theme', 'elegant') },
-    { label: 'Newsprint', click: () => sendToFocused('set-theme', 'newsprint') },
+    { label: '浅色', click: () => sendToFocused('set-theme', 'light') },
+    { label: '深色', click: () => sendToFocused('set-theme', 'dark') },
+    { label: '优雅', click: () => sendToFocused('set-theme', 'elegant') },
+    { label: '报刊', click: () => sendToFocused('set-theme', 'newsprint') },
   ]
   if (customThemeItems.length > 0) {
     themeSubmenu.push({ type: 'separator' }, ...customThemeItems)
   }
   themeSubmenu.push({ type: 'separator' }, {
-    label: 'Import Theme...',
+    label: '导入主题...',
     click: () => sendToFocused('menu-import-theme')
   })
 
@@ -832,91 +832,91 @@ function buildMenu(): void {
     ...(isMac ? [{
       label: 'ColaMD',
       submenu: [
-        { role: 'about' as const },
+        { label: '关于 ColaMD', role: 'about' as const },
         { type: 'separator' as const },
-        { role: 'hide' as const },
-        { role: 'hideOthers' as const },
-        { role: 'unhide' as const },
+        { label: '隐藏 ColaMD', role: 'hide' as const },
+        { label: '隐藏其他', role: 'hideOthers' as const },
+        { label: '全部显示', role: 'unhide' as const },
         { type: 'separator' as const },
-        { role: 'quit' as const }
+        { label: '退出 ColaMD', role: 'quit' as const }
       ]
     }] : []),
     {
-      label: 'File',
+      label: '文件',
       submenu: [
         {
-          label: 'New',
+          label: '新建',
           accelerator: 'CmdOrCtrl+N',
           click: () => createWindow()
         },
         {
-          label: 'New Slides...',
+          label: '新建幻灯片...',
           accelerator: 'CmdOrCtrl+Shift+N',
           click: () => sendToFocused('menu-new-slides')
         },
         {
-          label: 'Open...',
+          label: '打开...',
           accelerator: 'CmdOrCtrl+O',
           click: () => sendToFocused('menu-open')
         },
         { type: 'separator' },
         {
-          label: 'Save',
+          label: '保存',
           accelerator: 'CmdOrCtrl+S',
           click: () => sendToFocused('menu-save')
         },
         {
-          label: 'Save As...',
+          label: '另存为...',
           accelerator: 'CmdOrCtrl+Shift+S',
           click: () => sendToFocused('menu-save-as')
         },
         { type: 'separator' },
         {
-          label: 'Export PDF...',
+          label: '导出 PDF...',
           click: () => sendToFocused('menu-export-pdf')
         },
         {
-          label: 'Export Slides...',
+          label: '导出幻灯片...',
           click: () => sendToFocused('menu-export-slides')
         },
         {
-          label: 'Open as Slides',
+          label: '以幻灯片打开',
           accelerator: 'CmdOrCtrl+Shift+P',
           click: () => sendToFocused('menu-open-as-slides')
         },
         { type: 'separator' },
-        isMac ? { role: 'close' } : { role: 'quit' }
+        isMac ? { label: '关闭窗口', role: 'close' } : { label: '退出', role: 'quit' }
       ]
     },
     {
-      label: 'Edit',
+      label: '编辑',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
+        { label: '撤销', role: 'undo' },
+        { label: '重做', role: 'redo' },
         { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectAll' },
+        { label: '剪切', role: 'cut' },
+        { label: '复制', role: 'copy' },
+        { label: '粘贴', role: 'paste' },
+        { label: '全选', role: 'selectAll' },
         { type: 'separator' },
         {
-          label: 'Find',
+          label: '查找',
           accelerator: 'CmdOrCtrl+F',
           click: () => sendToFocused('editor:search')
         },
         {
-          label: 'Insert Formula',
+          label: '插入公式',
           accelerator: 'CmdOrCtrl+Shift+E',
           click: () => sendToFocused('editor:math')
         }
       ]
     },
     {
-      label: 'View',
+      label: '视图',
       submenu: [
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
+        { label: '实际大小', role: 'resetZoom' },
+        { label: '放大', role: 'zoomIn' },
+        { label: '缩小', role: 'zoomOut' },
         { type: 'separator' },
         {
           label: '显示 / 隐藏文件列表',
@@ -924,15 +924,15 @@ function buildMenu(): void {
           click: () => sendToFocused('toggle-file-panel')
         },
         { type: 'separator' },
-        { role: 'togglefullscreen' }
+        { label: '切换全屏', role: 'togglefullscreen' }
       ]
     },
     {
-      label: 'Theme',
+      label: '主题',
       submenu: themeSubmenu
     },
     {
-      label: 'Help',
+      label: '帮助',
       submenu: [
         {
           label: '新功能演示',
@@ -945,7 +945,7 @@ function buildMenu(): void {
           click: () => openCheatsheet()
         },
         {
-          label: 'About ColaMD',
+          label: '关于 ColaMD',
           click: () => shell.openExternal('https://github.com/marswaveai/colamd')
         }
       ]
