@@ -283,10 +283,18 @@ function watchFile(win: BrowserWindow, state: WindowState): void {
 // Rewrite relative image paths in markdown to absolute file:// URLs
 function resolveImagePaths(content: string, filePath: string): string {
   const dir = dirname(filePath)
-  return content.replace(/!\[([^\]]*)\]\((?!https?:\/\/|file:\/\/|data:)([^)]+)\)/g, (_match, alt, src) => {
-    const abs = join(dir, src)
-    return `![${alt}](file://${abs})`
-  })
+  return content
+    .replace(/!\[([^\]]*)\]\((?!https?:\/\/|file:\/\/|data:)([^)]+)\)/g, (_match, alt, src) => {
+      const abs = join(dir, src)
+      return `![${alt}](file://${abs})`
+    })
+    // Raw HTML <img> tags are parsed by Milkdown as an `html` node and injected
+    // into the DOM verbatim, so their relative src must be resolved here too —
+    // otherwise the browser resolves it against the app page, not the .md file.
+    .replace(/(<img\b[^>]*?src=["'])(?!https?:\/\/|file:\/\/|data:)([^"']+)(["'])/gi, (_match, pre, src, quote) => {
+      const abs = join(dir, src)
+      return `${pre}file://${abs}${quote}`
+    })
 }
 
 function loadFileInWindow(win: BrowserWindow, filePath: string): void {
