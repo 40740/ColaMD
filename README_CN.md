@@ -2,24 +2,26 @@
 
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-**ColaMD 是一款开源、免费、轻量、优雅的 Markdown 编辑器，目标是成为 Markdown 世界可靠的基础设施。**
+Markdown 已经成为 AI 时代写作、记录、文档和协作的事实标准。但很多人的电脑上依然没有一个免费、好看、好用的 Markdown 阅读器/编辑器。
 
-Markdown 已经成为写作、记录、文档和协作的事实标准。我们的目标很明确：把 ColaMD 做成最好用的免费 Markdown 编辑器，成为每个人日常都能依赖的基础工具。
+为此我开发了 ColaMD，一款开源、免费、轻量、优雅的 Markdown 编辑器。
 
-ColaMD 同时也是一款对 AI Agent 友好的编辑器：当 Agent 修改正在打开的 `.md` 文件时，ColaMD 会实时同步改动。
+它首先是一款简单、专注、好用的 Markdown 编辑器：所见即所得、主题切换、富文本复制、智能换行、PDF 导出，并支持 macOS、Windows 和 Linux。
+
+同时，ColaMD 也是一款对 AI Agent 友好的编辑器。当 Claude Code、Codex、Cola 或其他 Agent 修改正在打开的 `.md` 文件时，ColaMD 会实时同步改动。不需要关闭文件、重新打开，也不需要手动刷新。
+
+上线几个月以来，我们收到了社区热情的反馈。感谢大家提交 Issue、Pull Request，以及参与测试、反馈和讨论的每一位朋友。ColaMD 还在继续成长，欢迎下载体验，也欢迎告诉我们你希望它变成什么样。
+
+我们的目标很明确：把 ColaMD 做成最好用的免费 Markdown 编辑器，也让它成为 AI 时代 Markdown 工作流的一块可靠基础设施。
+
+如果 ColaMD 对你有帮助，欢迎给我们一个 ⭐ Star 支持。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
 
-[下载](#下载) | [为什么做 ColaMD](#为什么做-colamd) | [功能](#功能) | [开发](#开发)
+[下载](#下载) | [功能](#功能) | [开发](#开发)
 
 ---
-
-## 为什么选择 ColaMD？
-
-过去的 Markdown 编辑器，大多默认文件由一个人独立编辑。今天，Markdown 也已经成为 AI 工具生成文档、笔记、计划和报告时共同使用的语言。
-
-ColaMD 先把编辑器本身做得简单、专注、可靠，再让 AI 协作变得自然：打开文件，让 Agent 工作，所有改动实时出现在编辑器里。不需要关闭文件、重新打开，也不需要手动刷新。
 
 ## 功能
 

@@ -2,24 +2,26 @@
 
 **Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-**ColaMD is an open-source, free, lightweight, and elegant Markdown editor — built to become a dependable foundation for Markdown.**
+Markdown has become the de facto standard for writing, note-taking, documentation, and collaboration in the age of AI. Yet many computers still don't have a free, beautiful, capable Markdown reader/editor.
 
-Markdown has become the de facto standard for writing, note-taking, documentation, and collaboration. Our ambition is simple: make ColaMD the best free Markdown editor, and make it reliable enough to become everyday infrastructure.
+That's why I built ColaMD — an open-source, free, lightweight, and elegant Markdown editor.
 
-ColaMD is also friendly to AI agents. When an agent edits an open `.md` file, ColaMD syncs the changes in real time.
+First and foremost, it is a simple, focused, capable Markdown editor: true WYSIWYG editing, themes, rich-text copy, smart line breaks, PDF export, and support for macOS, Windows, and Linux.
+
+At the same time, ColaMD is friendly to AI agents. When Claude Code, Codex, Cola, or another agent edits an open `.md` file, ColaMD syncs the changes in real time. No closing the file, reopening it, or manual refresh.
+
+Since launching a few months ago, we have received enthusiastic feedback from the community. Thank you to everyone who has submitted Issues and Pull Requests, tested ColaMD, shared feedback, or joined the discussions. ColaMD is still growing — download it, try it, and tell us what you want it to become.
+
+Our goal is clear: make ColaMD the best free Markdown editor, and make it a reliable foundation for Markdown workflows in the age of AI.
+
+If ColaMD is useful to you, please give the project a ⭐ Star.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
 
-[Download](#download) | [Why ColaMD](#why-colamd) | [Features](#features) | [Development](#development)
+[Download](#download) | [Features](#features) | [Development](#development)
 
 ---
-
-## Why ColaMD?
-
-Most Markdown editors were designed for files edited by one person at a time. Today, Markdown is also the common language of AI tools that generate documentation, notes, plans, and reports.
-
-ColaMD keeps the editor simple for everyone, while making collaboration with AI feel natural. Open a file, let your agent work, and see every change as it happens — without closing the file, reopening it, or manually refreshing the page.
 
 ## Features
 
