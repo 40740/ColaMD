@@ -5,7 +5,7 @@ import { toggleMark, exitCode } from '@milkdown/kit/prose/commands'
 import { textblockTypeInputRule } from '@milkdown/kit/prose/inputrules'
 import type { Node as PMNode } from '@milkdown/kit/prose/model'
 import remarkBreaks from 'remark-breaks'
-import { commonmark, headingSchema } from '@milkdown/kit/preset/commonmark'
+import { commonmark, headingSchema, codeBlockSchema } from '@milkdown/kit/preset/commonmark'
 import { gfm } from '@milkdown/kit/preset/gfm'
 import { history } from '@milkdown/kit/plugin/history'
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener'
@@ -65,6 +65,12 @@ const fullwidthHeadingInputRule = $inputRule((ctx) =>
   textblockTypeInputRule(/^(?<hashes>[#＃]+)\s$/, headingSchema.type(ctx), (match) => ({
     level: match.groups?.hashes?.length || 1,
   }))
+)
+
+// ~ / ～ + 空格 → 代码块,与 “# + 空格 → 标题” 统一。
+// 三个反引号 + 空格由 Milkdown 内置规则处理。
+const tildeCodeBlockInputRule = $inputRule((ctx) =>
+  textblockTypeInputRule(/^(?<fence>[~～])\s$/, codeBlockSchema.type(ctx), () => ({ language: '' }))
 )
 
 // Editing conveniences: remove formatting the WYSIWYG view otherwise hides.
@@ -213,6 +219,7 @@ export async function createEditor(
     .use(commonmark)
     .use(gfm)
     .use(fullwidthHeadingInputRule)
+    .use(tildeCodeBlockInputRule)
     .use(highlight)
     .use(history)
     .use(listener)
