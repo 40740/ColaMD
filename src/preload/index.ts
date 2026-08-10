@@ -29,7 +29,6 @@ export interface ElectronAPI {
   onMenuImportTheme: (callback: () => void) => void
   exportSlides: (content: string) => Promise<boolean>
   onMenuExportSlides: (callback: () => void) => void
-  onMenuImportTheme: (callback: () => void) => void
   onAgentActivity: (callback: (state: string) => void) => void
   onSearch: (callback: () => void) => void
   onMathModal: (callback: () => void) => void
