@@ -1,31 +1,29 @@
 # ColaMD
 
-**Markdown as Database。Agent Native 的编辑器与模板渲染平台。**
+**Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-人类与 AI Agent 的实时协作 — Agent 的每一次修改，你都能即时看到。把任意 Markdown 文件渲染成幻灯片、博客、简历或产品页。
+**一个开源、免费、轻量、优雅的 Markdown 编辑器。**
+
+Markdown 已经成为写作、记录和协作的事实标准。ColaMD 想做一款简单、专注、可靠的桌面编辑器，成为每个人都可以使用的 Markdown 基础设施。同时，它也是一款对 AI Agent 友好的编辑器：当 Agent 修改正在打开的 `.md` 文件时，ColaMD 会实时同步改动。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
 
-[下载](#下载) | [为什么做 ColaMD](#为什么做-colamd) | [功能](#功能) | [幻灯片](#幻灯片--markdown-as-database) | [开发](#开发) | [English](README.md)
+[下载](#下载) | [为什么做 ColaMD](#为什么做-colamd) | [功能](#功能) | [开发](#开发)
 
 ---
 
 ## 为什么做 ColaMD？
 
-AI Agent 正在改变我们的工作方式。它们编辑文件、生成文档、产出报告 — 全是 Markdown。
+Markdown 无处不在：文档、笔记、项目计划，以及各种 AI 工具生成的文件。我们需要一款简单、快速、可靠的 Markdown 编辑器，作为每个人都能使用的基础设施。
 
-但你怎么**看到** Agent 的工作？关掉文件？再打开？等着？
-
-**ColaMD 改变了这一切。** 用 ColaMD 打开 `.md` 文件，让 Agent 去编辑它，内容会实时更新 — 就像和 AI 结对编程。不需要刷新，不需要重新加载，零摩擦。
-
-这就是 **Agent Native** 的含义：从底层为人类和 Agent 协作而生。
+ColaMD 先专注于做好编辑器本身，再为 AI 协作增加一个重要能力：**实时同步**。当 AI Agent 修改正在打开的 `.md` 文件时，ColaMD 会自动检测变化并实时刷新内容。不需要关闭文件、重新打开，也不需要手动刷新。
 
 ## 功能
 
-### Agent Native
+### 实时同步
 
-- **实时 Agent 同步** — AI Agent（Claude Code、Cursor、Copilot 等）修改 `.md` 文件时，ColaMD 自动检测并即时刷新。这是核心功能。
+- **实时 Agent 同步** — AI Agent（Claude Code、Cursor、Copilot 等）修改 `.md` 文件时，ColaMD 自动检测并即时刷新。
 - **Agent 活动指示器** — 标题栏的小圆点告诉你 Agent 的状态：橙色呼吸闪烁表示正在写入，绿色闪现表示写入完成。
 - **Cmd+点击链接** — 点击编辑器中的链接直接在浏览器打开。
 
@@ -39,65 +37,8 @@ AI Agent 正在改变我们的工作方式。它们编辑文件、生成文档�
 ### 主题与导出
 
 - **主题** — 4 个内置主题 + [可下载主题](themes/) + 自定义 CSS 导入。
-- **导出** — PDF 和 HTML。
+- **导出** — PDF。
 - **跨平台** — macOS、Windows、Linux。
-
-## 幻灯片 — Markdown as Database
-
-HTML 难改。Markdown 好改。
-
-ColaMD 提出一个新理念：**Markdown as Database**。`.md` 文件是内容层，HTML 模板是视图层。改内容只改 Markdown，完全不碰 HTML。
-
-一份 Markdown，多种渲染形态：幻灯片、博客、简历、产品页……未来各种模板都可以消费同一份文件。
-
-### 使用方式
-
-**File → New Slides（⌘⇧N）** — 创建 `slides.md` 教程模板，在编辑器里直接编辑内容。
-
-**File → Open as Slides（⌘⇧P）** — 启动本地服务，在浏览器打开当前 `.md` 文件的幻灯片。没有打开文件时会自动创建模板。
-
-**File → Export Slides...** — 导出可分享版本。不含视频：单个 `.html` 文件，图片 base64 内嵌，朋友双击就能看。含视频：导出文件夹，整体打包发送即可。
-
-### Slide 格式
-
-```markdown
----
-kicker: YOUR BRAND
-chip: 活动名称 · 2026
-page: YOUR NAME
----
-
-<!-- type: cover -->
-# 标题
-副标题
-
----
-
-<!-- type: statement -->
-## 核心观点
-一句有力量的话。
-
----
-
-## 章节
-第一个要点。
-
-第二个要点。
-
----
-
-<!-- type: thankyou -->
-## 谢谢
-结束语
-
-联系方式或邀请码
-```
-
-支持版式：`cover` · `statement` · `section` · `video` · `thankyou`
-
-可选：背景图（`bg: cover.png`）、视频嵌入（`src: demo.mp4`）、图片预览（`preview: screenshot.png`）。
-
-没有图片？封面自动降级为白底橙字的简洁配色，开箱即用。
 
 ## 下载
 
@@ -180,8 +121,6 @@ ColaMD 将随 Agent 生态一起演进：
 - v1.1 — 实时文件热更新、文件关联、拖拽打开、主题系统
 - v1.2 — 新图标
 - v1.3 — Agent 活动指示器、Cmd+点击链接、富文本复制、智能换行、PDF 导出、主题持久化
-- v1.4 — 幻灯片：Markdown as Database，HTML 模板渲染
-- v1.5 — 导出幻灯片：可分享的单文件 HTML，图片内联
 - v1.6 — 更稳的实时同步：原子保存（rename）检测、watcher 自愈、关闭拼写检查
 - v1.6.1 — 可勾选的待办列表（点击 / ⌘+Enter）、`==高亮==` 语法、Markdown 语法速查
 - v1.6.2 — 移除 HTML 导出
@@ -197,4 +136,4 @@ ColaMD 将随 Agent 生态一起演进：
 
 ---
 
-由 [marswave.ai](https://marswave.ai) 为 Agent Native 的未来而造。
+由 [marswave.ai](https://marswave.ai) 为更简单的 Markdown 未来而造。

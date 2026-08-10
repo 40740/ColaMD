@@ -1,31 +1,29 @@
 # ColaMD
 
-**Markdown as Database. The Agent Native editor and template rendering platform.**
+**Language / 语言: [English](README.md) · [中文](README_CN.md)**
 
-Real-time collaboration between humans and AI agents — see your agent's changes as they happen. Turn any Markdown file into a slide deck, blog post, resume, or product page.
+**An open-source, free, lightweight, and elegant Markdown editor.**
+
+Markdown has become the de facto standard for writing, note-taking, and collaboration. ColaMD is a clean, focused desktop editor built to be a simple foundation for working with Markdown. It is also friendly to AI agents: when an agent edits an open `.md` file, ColaMD syncs the changes in real time.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/marswaveai/colamd.svg)](https://github.com/marswaveai/colamd/releases)
 
-[Download](#download) | [Why ColaMD](#why-colamd) | [Features](#features) | [Slides](#slides--markdown-as-database) | [Development](#development) | [中文](README_CN.md)
+[Download](#download) | [Why ColaMD](#why-colamd) | [Features](#features) | [Development](#development)
 
 ---
 
 ## Why ColaMD?
 
-AI agents are rewriting how we work. They edit files, generate docs, and produce reports — all in Markdown.
+Markdown is everywhere: documentation, notes, project plans, and the files created by AI tools. We need a Markdown editor that stays simple, fast, and dependable — a piece of basic infrastructure anyone can use.
 
-But how do you **watch** an agent work? You close the file. You reopen it. You wait.
-
-**ColaMD changes this.** Open a `.md` file in ColaMD, let your agent edit it, and watch the content update in real-time — like pair programming with an AI. No refresh, no reload, no friction.
-
-This is what **Agent Native** means: built from the ground up for a world where humans and agents collaborate on the same files.
+ColaMD is designed around that idea. It gives you a focused writing experience first, then adds one important difference for AI-assisted work: **Live Agent Sync**. When an AI agent edits an open `.md` file, ColaMD detects the change and refreshes the content in real time. No closing and reopening files, no manual refresh, no friction.
 
 ## Features
 
-### Agent Native
+### Live Agent Sync
 
-- **Live Agent Sync** — When an AI agent (Claude Code, Cursor, Copilot, etc.) modifies your `.md` file, ColaMD detects the change and refreshes instantly. This is the core feature.
+- **Live Agent Sync** — When an AI agent (Claude Code, Cursor, Copilot, etc.) modifies your `.md` file, ColaMD detects the change and refreshes instantly.
 - **Agent Activity Indicator** — A subtle dot in the titlebar shows you when an agent is writing: orange breathing pulse while active, green flash when done. You always know if your agent is working.
 - **Cmd+Click Links** — Click any link in the editor to open it in your browser.
 
@@ -43,63 +41,6 @@ This is what **Agent Native** means: built from the ground up for a world where 
 - **Themes** — 4 built-in themes + [downloadable themes](themes/) + import custom CSS.
 - **Export** — PDF.
 - **Cross-platform** — macOS, Windows, Linux.
-
-## Slides — Markdown as Database
-
-HTML is hard to edit. Markdown is easy.
-
-ColaMD introduces a new idea: **Markdown as Database**. Your `.md` file is the content layer. HTML templates are the view layer. Change the content by editing Markdown — never touch the HTML.
-
-One Markdown file. Many possible renderings: slide deck, blog, resume, product page. Future templates can consume the same file in completely different ways.
-
-### How to use
-
-**File → New Slides (`⌘⇧N`)** — Creates a `slides.md` tutorial template and opens it in the editor.
-
-**File → Open as Slides (`⌘⇧P`)** — Spins up a local server and opens your current `.md` file as a slide deck in the browser. If no file is open, it creates one first.
-
-**File → Export Slides...** — Export a shareable version. Without video: a single `.html` file with images inlined as base64 — your friend double-clicks to view. With video: a folder containing `index.html` plus the video files — zip and send.
-
-### Slide format
-
-```markdown
----
-kicker: YOUR BRAND
-chip: Event · 2026
-page: YOUR NAME
----
-
-<!-- type: cover -->
-# Title
-Subtitle here
-
----
-
-<!-- type: statement -->
-## Key Message
-One powerful sentence.
-
----
-
-## Section
-First point.
-
-Second point.
-
----
-
-<!-- type: thankyou -->
-## Thank You
-Closing message
-
-call-to-action
-```
-
-Supported layouts: `cover` · `statement` · `section` · `video` · `thankyou`
-
-Optional: background image (`bg: cover.png`), video embed (`src: demo.mp4`), inline image preview (`preview: screenshot.png`).
-
-No image? The cover falls back to a clean orange-on-white design — it just works.
 
 ## Download
 
@@ -182,8 +123,6 @@ ColaMD will evolve alongside the agent ecosystem:
 - v1.1 — Live file reload, file associations, drag & drop, themes
 - v1.2 — New icon
 - v1.3 — Agent activity indicator, Cmd+click links, rich text copy, smart line breaks, PDF export, theme persistence
-- v1.4 — Slides: Markdown as Database, HTML template rendering
-- v1.5 — Export Slides: shareable single-file HTML with inlined images
 - v1.6 — Robust live sync: atomic-save (rename) detection, watcher self-recovery, spellcheck off
 - v1.6.1 — Editable task lists (click / ⌘+Enter), ==highlight== syntax, Markdown cheatsheet
 - v1.6.2 — Remove HTML export
@@ -199,4 +138,4 @@ ColaMD will evolve alongside the agent ecosystem:
 
 ---
 
-Built by [marswave.ai](https://marswave.ai) for the agent-native future.
+Built by [marswave.ai](https://marswave.ai) for a simpler Markdown future.
